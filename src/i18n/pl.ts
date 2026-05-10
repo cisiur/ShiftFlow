@@ -368,6 +368,38 @@ export const pl: Translations = {
     alertness:    { label: 'Obecna czujność',                  low: 'Ospały',         high: 'Skupiony' },
   },
 
+  // ── Roster import screen ─────────────────────────────────────────────────────
+  rosterImport: {
+    title:            'Importuj grafik',
+    close:            'Zamknij',
+    premiumTitle:     'Funkcja Premium',
+    premiumMessage:   'Import grafiku ze zdjęcia wymaga subskrypcji ShiftFlow Premium.',
+    premiumCta:       'Zobacz Premium',
+    permissionLibrary: 'Zezwól na dostęp do biblioteki zdjęć w Ustawieniach.',
+    permissionCamera:  'Dostęp do aparatu jest wymagany, aby zrobić zdjęcie.',
+    pickTitle:        'Sfotografuj swój grafik',
+    pickDesc:         'Zrób zdjęcie lub prześlij zrzut ekranu swojego harmonogramu zmian. AI automatycznie wyodrębni zmiany.',
+    takePhoto:        'Zrób zdjęcie',
+    chooseLibrary:    'Wybierz z biblioteki',
+    tipsTitle:        '💡 Wskazówki dla najlepszych wyników:',
+    tips:             '• Upewnij się, że cały grafik jest widoczny\n• Dobre oświetlenie — unikaj odbicia\n• Miesiąc i daty muszą być czytelne\n• Działa z drukowanymi grafikami, tablicami i aplikacjami',
+    noShiftsError:    'Nie udało się wyodrębnić zmian z tego zdjęcia. Spróbuj wyraźniejszego zdjęcia.',
+    analysing:        'Analizuję Twój grafik…',
+    analysingSub:     'Sprawdzamy Twój harmonogram',
+    reviewHint:       'Przejrzyj wykryte zmiany. Dotknij, aby odznaczyć te, których nie chcesz importować.',
+    selected:         (n: number, total: number) => `${n} z ${total} zmian wybranych`,
+    importBtn:        (n: number) => `Importuj ${n} ${n === 1 ? 'zmianę' : n < 5 ? 'zmiany' : 'zmian'}`,
+    saving:           'Zapisuję…',
+    tryAnother:       'Spróbuj innego zdjęcia',
+    confidenceHigh:   'wysoka pewność',
+    confidenceMed:    'średnia pewność',
+    confidenceLow:    'niska pewność',
+    doneTitle:        'Grafik zaimportowany!',
+    doneDesc:         (n: number) => `${n} ${n === 1 ? 'zmiana została dodana' : n < 5 ? 'zmiany zostały dodane' : 'zmian zostało dodanych'} do Twojego harmonogramu.`,
+    goToSchedule:     'Przejdź do harmonogramu',
+    importAnother:    'Importuj kolejny',
+  },
+
   // ── Feature component labels ───────────────────────────────────────────────
   features: {
     shiftCard: {

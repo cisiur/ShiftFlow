@@ -2,7 +2,7 @@
  * Roster OCR service — sends a base64 image to Claude Vision
  * and returns a structured list of shift entries.
  *
- * Uses: claude-3-5-sonnet-20241022 (best vision accuracy)
+ * Uses: claude-haiku-4-5-20251001
  * Requires: EXPO_PUBLIC_ANTHROPIC_API_KEY
  */
 
@@ -27,25 +27,56 @@ export interface OCRResult {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
-const VISION_MODEL      = 'claude-3-5-sonnet-20241022';
+const VISION_MODEL      = 'claude-sonnet-4-6';
 const ANTHROPIC_VERSION = '2023-06-01';
 
-const SYSTEM_PROMPT = `You are a shift-roster parser. Given a photo or screenshot of a work schedule, extract shift data as JSON.
+const SYSTEM_PROMPT = `You are a shift-roster parser specialised in reading Excel/spreadsheet work schedules. Extract every shift and return JSON only — no prose.
 
-Rules:
-- Return ONLY valid JSON. No prose before or after.
-- Infer dates from visible calendar headers. Use ISO format YYYY-MM-DD.
-- Map shift labels to types: morning (≈06–14), afternoon (≈14–22), night (≈22–06), long_day (≈07–19), long_night (≈19–07), off (rest/day off), custom (anything else).
-- If start/end times are visible, include them as "HH:MM" strings; otherwise null.
-- Set confidence: "high" if date+type clearly visible, "medium" if inferred, "low" if guessed.
-- Include a short "notes" string for any issues (blank cells, illegible text, etc.).
+━━━ DATE FORMAT ━━━
+Dates are ALWAYS European: DD/MM, DD/MM/YY, or DD/MM/YYYY (day comes first).
+NEVER treat them as US format. "12/05" = 12th May. "01/06" = 1st June.
+Output dates as YYYY-MM-DD ISO strings. Infer the year from context (column headers, nearby years).
 
-Output schema (strict):
+━━━ TIME FORMAT ━━━
+Times in Excel rosters are often written WITHOUT colons and WITHOUT leading zeros:
+  "7-19"   means start 07:00, end 19:00
+  "19-7"   means start 19:00, end 07:00 (next day)
+  "6-14"   means start 06:00, end 14:00
+  "22-6"   means start 22:00, end 06:00 (next day)
+Always convert to "HH:MM" format with leading zeros (e.g. "07:00", "19:00").
+If no time is visible, use null.
+
+━━━ SHIFT TYPE MAPPING ━━━
+Classify by start–end time:
+  06:00–14:00  → "morning"
+  14:00–22:00  → "afternoon"
+  22:00–06:00  → "night"
+  07:00–19:00  → "long_day"
+  19:00–07:00  → "long_night"
+  Day off / rest / "-" / empty → "off"
+  Anything else → "custom"
+
+━━━ MULTIPLE SHIFTS PER DAY ━━━
+A single table cell may contain TWO shifts separated by a newline, slash, or listed one below the other.
+Examples of double-shift cells:
+  "7-19 / 19-7"   → two shifts same date
+  "7-19\n19-7"    → two shifts same date
+  A cell showing "7-19" AND the cell directly below (same date column) showing "19-7" → two shifts
+For EVERY shift found on a day, emit a SEPARATE JSON object with the same "date". Never merge two shifts into one.
+
+━━━ MIDNIGHT-CROSSING SHIFTS ━━━
+A shift like "19-7" or "22-6" crosses midnight. The "date" field = the START date of that shift.
+The endTime is on the following calendar day, but keep the start date in the output.
+
+━━━ OUTPUT SCHEMA ━━━
+Return exactly this structure — nothing else:
 {
   "shifts": [
-    { "date": "2025-06-02", "type": "night", "startTime": "22:00", "endTime": "06:00", "confidence": "high" }
+    { "date": "2025-06-02", "type": "long_day",   "startTime": "07:00", "endTime": "19:00", "confidence": "high" },
+    { "date": "2025-06-02", "type": "long_night",  "startTime": "19:00", "endTime": "07:00", "confidence": "high" },
+    { "date": "2025-06-03", "type": "off",          "startTime": null,    "endTime": null,    "confidence": "high" }
   ],
-  "notes": "Row 4 was partially cut off."
+  "notes": "Brief note about anything ambiguous or unreadable. Empty string if all clear."
 }`;
 
 // ─── Main export ──────────────────────────────────────────────────────────────

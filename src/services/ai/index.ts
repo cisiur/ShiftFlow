@@ -16,7 +16,7 @@ interface AIProvider {
 // ─── Anthropic API types ──────────────────────────────────────────────────────
 
 const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
-const ANTHROPIC_MODEL   = 'claude-3-5-haiku-20241022';
+const ANTHROPIC_MODEL   = 'claude-haiku-4-5-20251001';
 const ANTHROPIC_VERSION = '2023-06-01';
 
 interface AnthropicMessage {
@@ -27,7 +27,7 @@ interface AnthropicMessage {
 interface AnthropicRequest {
   model: string;
   max_tokens: number;
-  system: Array<{ type: 'text'; text: string; cache_control?: { type: 'ephemeral' } }>;
+  system: Array<{ type: 'text'; text: string }>;
   messages: AnthropicMessage[];
 }
 
@@ -45,7 +45,6 @@ async function callAnthropic(payload: AnthropicRequest): Promise<string> {
       'content-type': 'application/json',
       'x-api-key': apiKey,
       'anthropic-version': ANTHROPIC_VERSION,
-      'anthropic-beta': 'prompt-caching-2024-07-31',
     },
     body: JSON.stringify(payload),
   });
@@ -121,7 +120,6 @@ const anthropicProvider: AIProvider = {
       system: [{
         type: 'text',
         text: isPL ? SYSTEM_PL : SYSTEM_EN,
-        cache_control: { type: 'ephemeral' },   // cache the large static system prompt
       }],
       messages: [{ role: 'user', content: userPrompt }],
     });

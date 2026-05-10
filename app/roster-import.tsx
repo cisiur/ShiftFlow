@@ -26,7 +26,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useTranslation } from '@/i18n';
 import { extractShiftsFromImage, type ExtractedShift } from '@/services/ocr';
 import { Analytics } from '@/services/analytics';
-import { formatDateLabel, todayISO } from '@/utils/time';
+import { todayISO } from '@/utils/time';
 import type { ShiftType } from '@/types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -41,10 +41,15 @@ function shiftLabel(type: ShiftType, t: ReturnType<typeof useTranslation>['t']):
   return t.shiftTypes[type]?.label ?? type;
 }
 
-// Convert expo-image-picker base64 result (may include data-URI prefix)
 function stripDataUriPrefix(b64: string): string {
   const idx = b64.indexOf(',');
   return idx >= 0 ? b64.slice(idx + 1) : b64;
+}
+
+function detectMimeType(base64: string): 'image/jpeg' | 'image/png' {
+  const clean = stripDataUriPrefix(base64);
+  if (clean.startsWith('iVBOR')) return 'image/png';
+  return 'image/jpeg';
 }
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
@@ -52,11 +57,14 @@ function stripDataUriPrefix(b64: string): string {
 type Step = 'pick' | 'processing' | 'review' | 'done';
 
 export default function RosterImportScreen() {
-  const router    = useRouter();
-  const { colors } = useColorScheme();
+  const router      = useRouter();
+  const { colors }  = useColorScheme();
   const { t, language } = useTranslation();
+  const ri          = t.rosterImport;
   const { isPremium } = usePremiumStore();
   const { addShiftForDate, setShiftForDate } = useScheduleStore();
+
+  const locale = language === 'pl' ? 'pl-PL' : 'en-US';
 
   const [step,         setStep]         = useState<Step>('pick');
   const [imageUri,     setImageUri]     = useState<string | null>(null);
@@ -66,18 +74,15 @@ export default function RosterImportScreen() {
   const [saving,       setSaving]       = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const locale = language === 'pl' ? 'pl-PL' : 'en-US';
-
   React.useEffect(() => {
     Analytics.screen('roster_import');
-    // Gate: premium only
     if (!isPremium()) {
       Alert.alert(
-        'Premium Feature',
-        'Roster photo import requires a ShiftFlow Premium subscription.',
+        ri.premiumTitle,
+        ri.premiumMessage,
         [
-          { text: 'See Premium', onPress: () => router.replace('/paywall') },
-          { text: 'Cancel',      onPress: () => router.back(),   style: 'cancel' },
+          { text: ri.premiumCta, onPress: () => router.replace('/paywall') },
+          { text: t.common.cancel, onPress: () => router.back(), style: 'cancel' },
         ],
       );
     }
@@ -88,43 +93,33 @@ export default function RosterImportScreen() {
   const pickImage = async () => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) {
-      Alert.alert(
-        'Permission required',
-        'Please allow access to your photo library in Settings.',
-      );
+      Alert.alert(ri.permissionLibrary);
       return;
     }
-
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.6,         // compress before sending to API
+      quality: 0.6,
       base64: true,
     });
-
     if (result.canceled || !result.assets[0]) return;
-
     const asset = result.assets[0];
+    const b64 = asset.base64 ?? '';
     setImageUri(asset.uri);
-    await runOCR(asset.base64 ?? '', asset.mimeType?.includes('png') ? 'image/png' : 'image/jpeg');
+    await runOCR(b64, detectMimeType(b64));
   };
 
   const takePhoto = async () => {
     const perm = await ImagePicker.requestCameraPermissionsAsync();
     if (!perm.granted) {
-      Alert.alert('Permission required', 'Camera access is required to take a photo.');
+      Alert.alert(ri.permissionCamera);
       return;
     }
-
-    const result = await ImagePicker.launchCameraAsync({
-      quality: 0.6,
-      base64:  true,
-    });
-
+    const result = await ImagePicker.launchCameraAsync({ quality: 0.6, base64: true });
     if (result.canceled || !result.assets[0]) return;
-
     const asset = result.assets[0];
+    const b64 = asset.base64 ?? '';
     setImageUri(asset.uri);
-    await runOCR(asset.base64 ?? '', 'image/jpeg');
+    await runOCR(b64, detectMimeType(b64));
   };
 
   // ── Step 2: OCR ──
@@ -132,28 +127,23 @@ export default function RosterImportScreen() {
   const runOCR = async (rawBase64: string, mime: 'image/jpeg' | 'image/png') => {
     setStep('processing');
     setErrorMessage(null);
-
     try {
       const b64 = stripDataUriPrefix(rawBase64);
       const result = await extractShiftsFromImage(b64, mime);
 
       if (result.shifts.length === 0) {
-        setErrorMessage('No shifts could be extracted from this image. Please try a clearer photo.');
+        setErrorMessage(ri.noShiftsError);
         setStep('pick');
         return;
       }
 
       setExtracted(result.shifts);
       setNotes(result.notes);
-      // pre-select all high/medium confidence shifts
       const preSelected = new Set(
-        result.shifts
-          .map((_, i) => i)
-          .filter(i => result.shifts[i].confidence !== 'low'),
+        result.shifts.map((_, i) => i).filter(i => result.shifts[i].confidence !== 'low'),
       );
       setSelected(preSelected);
       setStep('review');
-
       Analytics.track('roster_ocr_success', { count: result.shifts.length });
     } catch (err: any) {
       console.error('[OCR]', err);
@@ -171,20 +161,13 @@ export default function RosterImportScreen() {
   const saveShifts = async () => {
     setSaving(true);
     const toSave = extracted.filter((_, i) => selected.has(i));
-
     for (const shift of toSave) {
       if (shift.type === 'off') {
         setShiftForDate(shift.date, 'off');
       } else {
-        addShiftForDate(
-          shift.date,
-          shift.type,
-          shift.startTime ?? undefined,
-          shift.endTime   ?? undefined,
-        );
+        addShiftForDate(shift.date, shift.type, shift.startTime ?? undefined, shift.endTime ?? undefined);
       }
     }
-
     setSaving(false);
     setStep('done');
     Analytics.track('roster_imported', { count: toSave.length });
@@ -206,8 +189,8 @@ export default function RosterImportScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={styles.header}>
-        <Text variant="h3" weight="bold">Import Roster</Text>
-        <Button label="Close" variant="ghost" size="sm" onPress={() => router.back()} />
+        <Text variant="h3" weight="bold">{ri.title}</Text>
+        <Button label={ri.close} variant="ghost" size="sm" onPress={() => router.back()} />
       </View>
 
       {/* ── Step: pick ── */}
@@ -216,10 +199,10 @@ export default function RosterImportScreen() {
           <Card style={styles.card}>
             <Text style={{ fontSize: 40, textAlign: 'center' }}>📷</Text>
             <Text variant="h3" weight="semibold" center style={{ marginTop: Spacing.sm }}>
-              Photo your roster
+              {ri.pickTitle}
             </Text>
             <Text variant="body" color="secondary" center>
-              Take a photo or upload a screenshot of your shift schedule. Claude AI will extract the shifts automatically.
+              {ri.pickDesc}
             </Text>
           </Card>
 
@@ -232,39 +215,31 @@ export default function RosterImportScreen() {
           )}
 
           {imageUri && (
-            <Image
-              source={{ uri: imageUri }}
-              style={styles.preview}
-              resizeMode="contain"
-            />
+            <Image source={{ uri: imageUri }} style={styles.preview} resizeMode="contain" />
           )}
 
           <View style={styles.btnGroup}>
             <Button
-              label="Take photo"
+              label={ri.takePhoto}
               fullWidth
               size="lg"
               onPress={takePhoto}
             />
-            <Button
-              label="Choose from library"
-              fullWidth
-              size="lg"
-              variant="outline"
+            {/* Secondary button rendered manually so it's always visible regardless of theme */}
+            <TouchableOpacity
               onPress={pickImage}
-            />
+              activeOpacity={0.75}
+              style={[styles.outlineBtn, { borderColor: Palette.primary }]}
+            >
+              <Text variant="body" weight="semibold" style={{ color: Palette.primary }}>
+                {ri.chooseLibrary}
+              </Text>
+            </TouchableOpacity>
           </View>
 
           <Card style={[styles.card, { marginTop: 0 }]}>
-            <Text variant="caption" color="secondary">
-              💡 Tips for best results:
-            </Text>
-            <Text variant="caption" color="tertiary">
-              • Ensure the whole roster is visible{'\n'}
-              • Good lighting — avoid glare{'\n'}
-              • Month and dates must be readable{'\n'}
-              • Works with printed rosters, whiteboards, and apps
-            </Text>
+            <Text variant="caption" color="secondary">{ri.tipsTitle}</Text>
+            <Text variant="caption" color="tertiary">{ri.tips}</Text>
           </Card>
         </ScrollView>
       )}
@@ -277,10 +252,10 @@ export default function RosterImportScreen() {
           )}
           <ActivityIndicator size="large" color={Palette.primary} style={{ marginTop: Spacing.xl }} />
           <Text variant="body" color="secondary" center style={{ marginTop: Spacing.md }}>
-            Analysing your roster…
+            {ri.analysing}
           </Text>
           <Text variant="caption" color="tertiary" center style={{ marginTop: Spacing.xs }}>
-            Claude is reading your schedule
+            {ri.analysingSub}
           </Text>
         </View>
       )}
@@ -289,9 +264,7 @@ export default function RosterImportScreen() {
       {step === 'review' && (
         <>
           <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-            <Text variant="body" color="secondary" center>
-              Review extracted shifts. Tap to deselect any you don't want to import.
-            </Text>
+            <Text variant="body" color="secondary" center>{ri.reviewHint}</Text>
 
             {notes ? (
               <Card style={[styles.card, { borderColor: Palette.warning, borderWidth: 1 }]}>
@@ -301,8 +274,7 @@ export default function RosterImportScreen() {
 
             {extracted.map((shift, i) => {
               const isSelected = selected.has(i);
-              const isPast = shift.date < today;
-
+              const isPast     = shift.date < today;
               return (
                 <TouchableOpacity
                   key={i}
@@ -318,7 +290,6 @@ export default function RosterImportScreen() {
                     },
                   ]}
                 >
-                  {/* Checkbox */}
                   <View style={[
                     styles.checkbox,
                     { backgroundColor: isSelected ? Palette.primary : 'transparent',
@@ -327,7 +298,6 @@ export default function RosterImportScreen() {
                     {isSelected && <Text style={{ color: '#fff', fontSize: 11, lineHeight: 14 }}>✓</Text>}
                   </View>
 
-                  {/* Date */}
                   <View style={styles.dateCol}>
                     <Text variant="caption" weight="semibold" color="secondary">
                       {new Date(shift.date + 'T12:00').toLocaleDateString(locale, { weekday: 'short' }).toUpperCase()}
@@ -337,11 +307,8 @@ export default function RosterImportScreen() {
                     </Text>
                   </View>
 
-                  {/* Shift info */}
                   <View style={{ flex: 1 }}>
-                    <Text variant="body" weight="semibold">
-                      {shiftLabel(shift.type, t)}
-                    </Text>
+                    <Text variant="body" weight="semibold">{shiftLabel(shift.type, t)}</Text>
                     {(shift.startTime || shift.endTime) && (
                       <Text variant="caption" color="secondary">
                         {shift.startTime ?? '?'} – {shift.endTime ?? '?'}
@@ -349,18 +316,21 @@ export default function RosterImportScreen() {
                     )}
                   </View>
 
-                  {/* Confidence dot */}
                   <View style={[styles.dot, { backgroundColor: confidenceColor(shift.confidence) }]} />
                 </TouchableOpacity>
               );
             })}
 
-            {/* Legend */}
+            {/* Confidence legend */}
             <View style={styles.legend}>
-              {(['high', 'medium', 'low'] as const).map(c => (
+              {([
+                ['high',   ri.confidenceHigh],
+                ['medium', ri.confidenceMed],
+                ['low',    ri.confidenceLow],
+              ] as const).map(([c, label]) => (
                 <View key={c} style={styles.legendItem}>
                   <View style={[styles.dot, { backgroundColor: confidenceColor(c) }]} />
-                  <Text variant="caption" color="tertiary">{c} confidence</Text>
+                  <Text variant="caption" color="tertiary">{label}</Text>
                 </View>
               ))}
             </View>
@@ -370,10 +340,10 @@ export default function RosterImportScreen() {
 
           <View style={[styles.footer, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
             <Text variant="caption" color="secondary" center style={{ marginBottom: Spacing.sm }}>
-              {selected.size} of {extracted.length} shifts selected
+              {ri.selected(selected.size, extracted.length)}
             </Text>
             <Button
-              label={saving ? 'Saving…' : `Import ${selected.size} shift${selected.size !== 1 ? 's' : ''}`}
+              label={saving ? ri.saving : ri.importBtn(selected.size)}
               fullWidth
               size="lg"
               loading={saving}
@@ -381,7 +351,7 @@ export default function RosterImportScreen() {
               onPress={saveShifts}
             />
             <Button
-              label="Try a different photo"
+              label={ri.tryAnother}
               variant="ghost"
               fullWidth
               size="sm"
@@ -397,19 +367,19 @@ export default function RosterImportScreen() {
         <View style={styles.centred}>
           <Text style={{ fontSize: 64, textAlign: 'center' }}>✅</Text>
           <Text variant="h2" weight="bold" center style={{ marginTop: Spacing.md }}>
-            Roster imported!
+            {ri.doneTitle}
           </Text>
           <Text variant="body" color="secondary" center style={{ marginTop: Spacing.sm }}>
-            {selected.size} shift{selected.size !== 1 ? 's' : ''} have been added to your schedule.
+            {ri.doneDesc(selected.size)}
           </Text>
           <Button
-            label="Go to Schedule"
+            label={ri.goToSchedule}
             size="lg"
             onPress={() => router.replace('/(tabs)/schedule')}
             style={{ marginTop: Spacing.xl }}
           />
           <Button
-            label="Import another"
+            label={ri.importAnother}
             variant="ghost"
             size="sm"
             onPress={() => {
@@ -451,18 +421,26 @@ const styles = StyleSheet.create({
     padding:        Spacing.xl,
   },
   preview: {
-    width:        '100%',
-    height:       200,
-    borderRadius: Radius.md,
+    width:           '100%',
+    height:          200,
+    borderRadius:    Radius.md,
     backgroundColor: '#000',
   },
   previewSmall: {
-    width:        240,
-    height:       160,
-    borderRadius: Radius.md,
+    width:           240,
+    height:          160,
+    borderRadius:    Radius.md,
     backgroundColor: '#000',
   },
   btnGroup: { gap: Spacing.sm },
+  // Explicit outline button — avoids theme-dependent text colour on ghost/outline variants
+  outlineBtn: {
+    borderWidth:    2,
+    borderRadius:   Radius.lg,
+    paddingVertical: 14,
+    alignItems:     'center',
+    justifyContent: 'center',
+  },
   shiftRow: {
     flexDirection:  'row',
     alignItems:     'center',
@@ -498,10 +476,10 @@ const styles = StyleSheet.create({
     gap:           Spacing.xs,
   },
   footer: {
-    position:      'absolute',
+    position:       'absolute',
     bottom: 0, left: 0, right: 0,
-    padding:       Spacing.base,
-    paddingBottom: Spacing.xl,
+    padding:        Spacing.base,
+    paddingBottom:  Spacing.xl,
     borderTopWidth: 1,
   },
 });

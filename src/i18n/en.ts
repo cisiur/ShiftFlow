@@ -366,6 +366,42 @@ export const en = {
     alertness:    { label: 'Current alertness',        low: 'Groggy',     high: 'Sharp' },
   },
 
+  // ── Roster import screen ─────────────────────────────────────────────────────
+  rosterImport: {
+    title:            'Import Roster',
+    close:            'Close',
+    premiumTitle:     'Premium Feature',
+    premiumMessage:   'Roster photo import requires a ShiftFlow Premium subscription.',
+    premiumCta:       'See Premium',
+    permissionLibrary: 'Please allow access to your photo library in Settings.',
+    permissionCamera:  'Camera access is required to take a photo.',
+    // pick step
+    pickTitle:        'Photo your roster',
+    pickDesc:         'Take a photo or upload a screenshot of your shift schedule. AI will extract the shifts automatically.',
+    takePhoto:        'Take photo',
+    chooseLibrary:    'Choose from library',
+    tipsTitle:        '💡 Tips for best results:',
+    tips:             '• Ensure the whole roster is visible\n• Good lighting — avoid glare\n• Month and dates must be readable\n• Works with printed rosters, whiteboards, and apps',
+    noShiftsError:    'No shifts could be extracted from this image. Please try a clearer photo.',
+    // processing step
+    analysing:        'Analysing your roster…',
+    analysingSub:     'We are checking your schedule',
+    // review step
+    reviewHint:       'Review extracted shifts. Tap to deselect any you don\'t want to import.',
+    selected:         (n: number, total: number) => `${n} of ${total} shifts selected`,
+    importBtn:        (n: number) => `Import ${n} shift${n !== 1 ? 's' : ''}`,
+    saving:           'Saving…',
+    tryAnother:       'Try a different photo',
+    confidenceHigh:   'high confidence',
+    confidenceMed:    'medium confidence',
+    confidenceLow:    'low confidence',
+    // done step
+    doneTitle:        'Roster imported!',
+    doneDesc:         (n: number) => `${n} shift${n !== 1 ? 's' : ''} have been added to your schedule.`,
+    goToSchedule:     'Go to Schedule',
+    importAnother:    'Import another',
+  },
+
   // ── Feature component labels ───────────────────────────────────────────────
   features: {
     shiftCard: {

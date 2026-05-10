@@ -2,21 +2,24 @@ import Constants from 'expo-constants';
 
 const extra = Constants.expoConfig?.extra ?? {};
 
-// Expo SDK 49+ supports process.env.EXPO_PUBLIC_* embedded at build time.
-// Fall back to Constants.expoConfig.extra for EAS Build / OTA updates.
-function env(key: string): string | undefined {
-  // @ts-ignore — process.env is available via Metro bundler
-  return (process.env[key] as string | undefined) || (extra[key] as string | undefined);
-}
-
+// Metro inlines process.env.EXPO_PUBLIC_* ONLY with literal dot-notation access.
+// Dynamic bracket access (process.env[key]) is NOT replaced at build time.
+// Always use literal property names here.
 export const Config = {
-  aiProvider:            env('EXPO_PUBLIC_AI_PROVIDER')            ?? 'mock',
-  analyticsProvider:     env('EXPO_PUBLIC_ANALYTICS_PROVIDER')     ?? 'mock',
-  enableAIExplanations:  env('EXPO_PUBLIC_ENABLE_AI_EXPLANATIONS') === 'true',
-  enableScheduleOCR:     env('EXPO_PUBLIC_ENABLE_SCHEDULE_OCR')    === 'true',
-  appEnv:                env('EXPO_PUBLIC_APP_ENV')                ?? 'development',
-  anthropicApiKey:       env('EXPO_PUBLIC_ANTHROPIC_API_KEY'),
-  revenueCatApiKey:      env('EXPO_PUBLIC_REVENUECAT_API_KEY'),
+  // @ts-ignore
+  aiProvider:           (process.env.EXPO_PUBLIC_AI_PROVIDER           as string | undefined) ?? (extra.EXPO_PUBLIC_AI_PROVIDER           as string | undefined) ?? 'mock',
+  // @ts-ignore
+  analyticsProvider:    (process.env.EXPO_PUBLIC_ANALYTICS_PROVIDER    as string | undefined) ?? (extra.EXPO_PUBLIC_ANALYTICS_PROVIDER    as string | undefined) ?? 'mock',
+  // @ts-ignore
+  enableAIExplanations: (process.env.EXPO_PUBLIC_ENABLE_AI_EXPLANATIONS as string | undefined) === 'true',
+  // @ts-ignore
+  enableScheduleOCR:    (process.env.EXPO_PUBLIC_ENABLE_SCHEDULE_OCR   as string | undefined) === 'true',
+  // @ts-ignore
+  appEnv:               (process.env.EXPO_PUBLIC_APP_ENV               as string | undefined) ?? (extra.EXPO_PUBLIC_APP_ENV               as string | undefined) ?? 'development',
+  // @ts-ignore
+  anthropicApiKey:      (process.env.EXPO_PUBLIC_ANTHROPIC_API_KEY     as string | undefined) ?? (extra.EXPO_PUBLIC_ANTHROPIC_API_KEY     as string | undefined),
+  // @ts-ignore
+  revenueCatApiKey:     (process.env.EXPO_PUBLIC_REVENUECAT_API_KEY    as string | undefined) ?? (extra.EXPO_PUBLIC_REVENUECAT_API_KEY    as string | undefined),
   isDev: __DEV__,
 } as const;
 
