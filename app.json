@@ -1,0 +1,53 @@
+{
+  "expo": {
+    "name": "ShiftFlow",
+    "slug": "shiftflow",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "shiftflow",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0F1623"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.shiftflow.app",
+      "infoPlist": {
+        "NSUserNotificationsUsageDescription": "ShiftFlow uses notifications to send you timely reminders about sleep, caffeine cutoff, and shift transitions."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0F1623"
+      },
+      "package": "com.shiftflow.app",
+      "permissions": [
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "WAKE_LOCK"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-notifications"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "aa7f162f-fe2a-44aa-bf8f-d4d32b45b2df"
+      }
+    },
+    "owner": "cisiur"
+  }
+}
