@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+
+    <!-- Background: dark navy with subtle lighter centre -->
+    <radialGradient id="bgGrad" cx="50%" cy="45%" r="65%">
+      <stop offset="0%"   stop-color="#1a2a44"/>
+      <stop offset="100%" stop-color="#0F1623"/>
+    </radialGradient>
+
+    <!-- Day half: amber → orange (warm, energetic) -->
+    <linearGradient id="dayGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#FCD34D"/>
+      <stop offset="100%" stop-color="#F97316"/>
+    </linearGradient>
+
+    <!-- Night half: indigo → brand blue (cool, deep) -->
+    <linearGradient id="nightGrad" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#4F6EF7"/>
+    </linearGradient>
+
+    <!-- Border ring: brand blue → purple -->
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#4F6EF7"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </linearGradient>
+
+    <!-- Clip everything to the main circle -->
+    <clipPath id="mainCircle">
+      <circle cx="512" cy="512" r="358"/>
+    </clipPath>
+
+  </defs>
+
+  <!-- ── Rounded square background ── -->
+  <rect width="1024" height="1024" rx="224" fill="url(#bgGrad)"/>
+
+  <!-- ── Night base (fills entire circle) ── -->
+  <circle cx="512" cy="512" r="358"
+          fill="url(#nightGrad)"
+          clip-path="url(#mainCircle)"/>
+
+  <!--
+    ── Day yin-yang region ──
+    Circle: centre (512,512), r=358
+    Top:    (512, 154)   Bottom: (512, 870)
+    Small-arc radius: 179 (= 358/2)
+
+    Path breakdown:
+      M 512,154                      → start at top
+      a 179,179 0 0,1 0,358          → CW small arc to (512,512): right-bulge in upper half
+      a 179,179 0 0,0 0,358          → CCW small arc to (512,870): left-bulge in lower half
+      a 358,358 0 0,1 0,-716         → CW large arc back to (512,154): closes via right side
+  -->
+  <path d="M 512,154
+           a 179,179 0 0,1 0,358
+           a 179,179 0 0,0 0,358
+           a 358,358 0 0,1 0,-716
+           z"
+        fill="url(#dayGrad)"
+        clip-path="url(#mainCircle)"/>
+
+  <!-- ── Small dots (contrasting eyes) ── -->
+  <!-- Night dot inside day area (upper half centre) -->
+  <circle cx="512" cy="333" r="62"
+          fill="url(#nightGrad)"
+          clip-path="url(#mainCircle)"/>
+
+  <!-- Day dot inside night area (lower half centre) -->
+  <circle cx="512" cy="691" r="62"
+          fill="url(#dayGrad)"
+          clip-path="url(#mainCircle)"/>
+
+  <!-- ── Subtle inner highlight on the dividing curve (gives depth) ── -->
+  <path d="M 512,154
+           a 179,179 0 0,1 0,358
+           a 179,179 0 0,0 0,358"
+        fill="none"
+        stroke="rgba(255,255,255,0.18)"
+        stroke-width="5"
+        clip-path="url(#mainCircle)"/>
+
+  <!-- ── Outer ring border ── -->
+  <circle cx="512" cy="512" r="358"
+          fill="none"
+          stroke="url(#ringGrad)"
+          stroke-width="10"
+          opacity="0.7"/>
+
+  <!-- ── Very subtle outer glow ring on the background ── -->
+  <circle cx="512" cy="512" r="390"
+          fill="none"
+          stroke="#4F6EF7"
+          stroke-width="2"
+          opacity="0.15"/>
+
+</svg>

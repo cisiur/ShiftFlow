@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1242 2688" width="1242" height="2688">
+  <!--
+    Splash screen — iPhone 14 Pro Max resolution (1242×2688).
+    Background colour (#0F1623) is declared in app.json splash.backgroundColor.
+    This file contains only the centred artwork on a transparent background.
+    Expo uses resizeMode "contain" so it scales uniformly on every device.
+  -->
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%"   stop-color="#1a2a44" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#0F1623" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="dayGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#FCD34D"/>
+      <stop offset="100%" stop-color="#F97316"/>
+    </linearGradient>
+    <linearGradient id="nightGrad" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#4F6EF7"/>
+    </linearGradient>
+    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#4F6EF7"/>
+      <stop offset="100%" stop-color="#7C3AED"/>
+    </linearGradient>
+    <clipPath id="splashCircle">
+      <circle cx="621" cy="1230" r="220"/>
+    </clipPath>
+  </defs>
+
+  <!-- Soft radial glow behind the icon -->
+  <ellipse cx="621" cy="1230" rx="420" ry="420" fill="url(#bgGlow)"/>
+
+  <!-- ── Icon (r=220, centred at 621, 1230) ── -->
+
+  <!-- Night base -->
+  <circle cx="621" cy="1230" r="220"
+          fill="url(#nightGrad)"
+          clip-path="url(#splashCircle)"/>
+
+  <!-- Day yin-yang region (small-arc r=110) -->
+  <path d="M 621,1010
+           a 110,110 0 0,1 0,220
+           a 110,110 0 0,0 0,220
+           a 220,220 0 0,1 0,-440
+           z"
+        fill="url(#dayGrad)"
+        clip-path="url(#splashCircle)"/>
+
+  <!-- Night dot in day area -->
+  <circle cx="621" cy="1120" r="38"
+          fill="url(#nightGrad)"
+          clip-path="url(#splashCircle)"/>
+
+  <!-- Day dot in night area -->
+  <circle cx="621" cy="1340" r="38"
+          fill="url(#dayGrad)"
+          clip-path="url(#splashCircle)"/>
+
+  <!-- Dividing curve highlight -->
+  <path d="M 621,1010
+           a 110,110 0 0,1 0,220
+           a 110,110 0 0,0 0,220"
+        fill="none"
+        stroke="rgba(255,255,255,0.2)"
+        stroke-width="3"
+        clip-path="url(#splashCircle)"/>
+
+  <!-- Border ring -->
+  <circle cx="621" cy="1230" r="220"
+          fill="none"
+          stroke="url(#ringGrad)"
+          stroke-width="7"
+          opacity="0.7"/>
+
+  <!-- ── Wordmark ── -->
+  <!-- "ShiftFlow" in bold white, centred below icon -->
+  <text x="621" y="1530"
+        font-family="'Helvetica Neue', Helvetica, Arial, sans-serif"
+        font-size="96"
+        font-weight="700"
+        fill="#FFFFFF"
+        text-anchor="middle"
+        letter-spacing="-1">ShiftFlow</text>
+
+  <!-- Tagline in muted blue-grey -->
+  <text x="621" y="1618"
+        font-family="'Helvetica Neue', Helvetica, Arial, sans-serif"
+        font-size="40"
+        font-weight="400"
+        fill="#94A3B8"
+        text-anchor="middle"
+        letter-spacing="1">Energy planning for shift workers</text>
+
+</svg>

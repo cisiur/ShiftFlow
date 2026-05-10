@@ -6,19 +6,27 @@
     "orientation": "portrait",
     "scheme": "shiftflow",
     "userInterfaceStyle": "automatic",
+
+    "icon": "./assets/icon.png",
+
     "splash": {
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#0F1623"
     },
+
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.shiftflow.app",
+      "icon": "./assets/icon.png",
       "infoPlist": {
         "NSUserNotificationsUsageDescription": "ShiftFlow uses notifications to send you timely reminders about sleep, caffeine cutoff, and shift transitions."
       }
     },
+
     "android": {
       "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0F1623"
       },
       "package": "com.shiftflow.app",
@@ -28,7 +36,9 @@
         "WAKE_LOCK"
       ]
     },
+
     "web": {
+      "favicon": "./assets/favicon.png",
       "bundler": "metro",
       "output": "static"
     },

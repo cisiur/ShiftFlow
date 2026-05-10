@@ -2,12 +2,21 @@ import Constants from 'expo-constants';
 
 const extra = Constants.expoConfig?.extra ?? {};
 
+// Expo SDK 49+ supports process.env.EXPO_PUBLIC_* embedded at build time.
+// Fall back to Constants.expoConfig.extra for EAS Build / OTA updates.
+function env(key: string): string | undefined {
+  // @ts-ignore — process.env is available via Metro bundler
+  return (process.env[key] as string | undefined) || (extra[key] as string | undefined);
+}
+
 export const Config = {
-  aiProvider: (extra.EXPO_PUBLIC_AI_PROVIDER as string) ?? 'mock',
-  analyticsProvider: (extra.EXPO_PUBLIC_ANALYTICS_PROVIDER as string) ?? 'mock',
-  enableAIExplanations: extra.EXPO_PUBLIC_ENABLE_AI_EXPLANATIONS === 'true',
-  enableScheduleOCR: extra.EXPO_PUBLIC_ENABLE_SCHEDULE_OCR === 'true',
-  appEnv: (extra.EXPO_PUBLIC_APP_ENV as string) ?? 'development',
+  aiProvider:            env('EXPO_PUBLIC_AI_PROVIDER')            ?? 'mock',
+  analyticsProvider:     env('EXPO_PUBLIC_ANALYTICS_PROVIDER')     ?? 'mock',
+  enableAIExplanations:  env('EXPO_PUBLIC_ENABLE_AI_EXPLANATIONS') === 'true',
+  enableScheduleOCR:     env('EXPO_PUBLIC_ENABLE_SCHEDULE_OCR')    === 'true',
+  appEnv:                env('EXPO_PUBLIC_APP_ENV')                ?? 'development',
+  anthropicApiKey:       env('EXPO_PUBLIC_ANTHROPIC_API_KEY'),
+  revenueCatApiKey:      env('EXPO_PUBLIC_REVENUECAT_API_KEY'),
   isDev: __DEV__,
 } as const;
 

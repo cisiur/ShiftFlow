@@ -1,52 +1,117 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
+import { Card, PressableCard } from '@/components/ui/Card';
 import { Spacing, Palette } from '@/constants/theme';
 import { usePremiumStore } from '@/store/premiumStore';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Analytics } from '@/services/analytics';
+import {
+  getOfferings,
+  purchaseProduct,
+  restorePurchases,
+  type ProductInfo,
+} from '@/services/purchases';
 import * as Haptics from 'expo-haptics';
 
 const PREMIUM_FEATURES = [
   { icon: '🤖', label: 'AI-powered plan explanations', desc: 'Personalised reasons behind every recommendation' },
-  { icon: '📊', label: 'Adaptive recovery plans', desc: 'Plans that learn from your daily check-ins' },
-  { icon: '📥', label: 'Schedule import', desc: 'Upload a photo or document of your roster' },
-  { icon: '📈', label: 'Trend insights', desc: 'See your sleep, energy, and fatigue over time' },
-  { icon: '🔔', label: 'Smart reminders', desc: 'Context-aware alerts based on your shift type' },
+  { icon: '📊', label: 'Adaptive recovery plans',      desc: 'Plans that learn from your daily check-ins' },
+  { icon: '📥', label: 'Schedule import',              desc: 'Upload a photo or document of your roster' },
+  { icon: '📈', label: 'Trend insights',               desc: 'See your sleep, energy, and fatigue over time' },
+  { icon: '🔔', label: 'Smart reminders',              desc: 'Context-aware alerts based on your shift type' },
 ];
 
 const FREE_FEATURES = [
   'Manual schedule entry',
-  'Today\'s energy plan',
+  "Today's energy plan",
   'Basic weekly overview',
   'Standard reminders',
   'Daily check-ins',
 ];
 
 export default function PaywallScreen() {
-  const router = useRouter();
+  const router   = useRouter();
   const { colors } = useColorScheme();
-  const { activatePremium, isPremium } = usePremiumStore();
-  const [purchasing, setPurchasing] = useState(false);
+  const { activatePremium, deactivatePremium, isPremium } = usePremiumStore();
 
-  React.useEffect(() => {
+  const [products,    setProducts]    = useState<ProductInfo[]>([]);
+  const [selected,    setSelected]    = useState<string | null>(null);
+  const [purchasing,  setPurchasing]  = useState(false);
+  const [restoring,   setRestoring]   = useState(false);
+  const [loadingOffer, setLoadingOffer] = useState(true);
+
+  useEffect(() => {
     Analytics.screen('paywall');
+    getOfferings().then(prods => {
+      setProducts(prods);
+      // pre-select the monthly plan
+      const monthly = prods.find(p => p.period === 'monthly');
+      if (monthly) setSelected(monthly.identifier);
+      setLoadingOffer(false);
+    });
   }, []);
 
+  const monthly = products.find(p => p.period === 'monthly');
+  const annual  = products.find(p => p.period === 'annual');
+
+  // Compute savings % dynamically from real prices
+  const savingsPct = monthly && annual
+    ? Math.round((1 - annual.price / (monthly.price * 12)) * 100)
+    : 33;
+
+  const selectedProduct = products.find(p => p.identifier === selected);
+
+  // ── Purchase ──
+
   const handlePurchase = async () => {
+    if (!selectedProduct) return;
     setPurchasing(true);
-    // TODO: Replace with real IAP (expo-in-app-purchases or RevenueCat)
-    await new Promise(r => setTimeout(r, 1200)); // simulate network
-    activatePremium();
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Analytics.premiumPurchased('premium');
-    setPurchasing(false);
-    router.back();
+    try {
+      const result = await purchaseProduct(selectedProduct.identifier);
+      if (result.success && result.isPremium) {
+        activatePremium();
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        Analytics.premiumPurchased(selectedProduct.identifier);
+        router.back();
+      } else if (result.error) {
+        Alert.alert('Purchase failed', result.error);
+      }
+      // silent cancel — user cancelled the OS dialog
+    } catch (err: any) {
+      Alert.alert('Purchase error', err?.message ?? 'Please try again.');
+    } finally {
+      setPurchasing(false);
+    }
   };
+
+  // ── Restore ──
+
+  const handleRestore = async () => {
+    setRestoring(true);
+    try {
+      const result = await restorePurchases();
+      if (result.isPremium) {
+        activatePremium();
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        Alert.alert('Restored', 'Your premium subscription has been restored.');
+        router.back();
+      } else {
+        // Ensure local state reflects reality
+        deactivatePremium();
+        Alert.alert('Nothing to restore', 'No active subscription found for this account.');
+      }
+    } catch (err: any) {
+      Alert.alert('Restore failed', err?.message ?? 'Please try again.');
+    } finally {
+      setRestoring(false);
+    }
+  };
+
+  // ── Already premium ──
 
   if (isPremium()) {
     return (
@@ -66,6 +131,8 @@ export default function PaywallScreen() {
       </SafeAreaView>
     );
   }
+
+  // ── Paywall UI ──
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
@@ -113,45 +180,68 @@ export default function PaywallScreen() {
           ))}
         </Card>
 
-        {/* Pricing */}
-        <Card style={[styles.pricingCard, { borderColor: Palette.primary }]}>
-          <View style={styles.priceRow}>
-            <View>
-              <Text variant="h2" weight="bold" style={{ color: Palette.primary }}>$4.99</Text>
-              <Text variant="caption" color="secondary">per month</Text>
-            </View>
-            <View style={styles.priceAlt}>
-              <Text variant="body" weight="bold">$39.99</Text>
-              <Text variant="caption" color="secondary">per year  · save 33%</Text>
-            </View>
+        {/* Plan selector — real prices from RevenueCat */}
+        {loadingOffer ? (
+          <Card style={styles.pricingCard}>
+            <Text variant="body" color="secondary" center>Loading prices…</Text>
+          </Card>
+        ) : (
+          <View style={styles.planRow}>
+            {monthly && (
+              <PlanCard
+                product={monthly}
+                selected={selected === monthly.identifier}
+                onSelect={() => setSelected(monthly.identifier)}
+                colors={colors}
+              />
+            )}
+            {annual && (
+              <PlanCard
+                product={annual}
+                selected={selected === annual.identifier}
+                badge={`Save ${savingsPct}%`}
+                onSelect={() => setSelected(annual.identifier)}
+                colors={colors}
+              />
+            )}
           </View>
-        </Card>
+        )}
 
         <Text variant="caption" color="tertiary" center style={{ marginTop: Spacing.sm }}>
-          Cancel anytime. No hidden fees. Payments are handled securely.
+          Cancel anytime. No hidden fees. Payments handled securely via the App Store / Google Play.
         </Text>
-        <Text variant="caption" color="tertiary" center>
-          {/* DEV note */}
-          {__DEV__ ? '⚙️ DEV: Purchase is mocked — no real payment.' : ''}
-        </Text>
+        {__DEV__ && (
+          <Text variant="caption" color="tertiary" center>
+            ⚙️ DEV: RevenueCat{' '}
+            {products[0]?.priceString?.startsWith('$4') ? 'mock prices' : 'live prices'}
+          </Text>
+        )}
 
         <View style={{ height: 120 }} />
       </ScrollView>
 
       <View style={[styles.footer, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
         <Button
-          label="Start Premium — $4.99/mo"
+          label={
+            purchasing
+              ? 'Processing…'
+              : selectedProduct
+                ? `Subscribe — ${selectedProduct.priceString}${selectedProduct.period === 'monthly' ? '/mo' : '/yr'}`
+                : 'Select a plan'
+          }
           fullWidth
           size="lg"
           loading={purchasing}
+          disabled={!selectedProduct || loadingOffer}
           onPress={handlePurchase}
         />
         <Button
-          label="Restore purchase"
+          label={restoring ? 'Restoring…' : 'Restore purchase'}
           variant="ghost"
           fullWidth
           size="sm"
-          onPress={() => {}} // TODO: implement restore
+          loading={restoring}
+          onPress={handleRestore}
           style={{ marginTop: Spacing.xs }}
         />
       </View>
@@ -159,53 +249,59 @@ export default function PaywallScreen() {
   );
 }
 
+// ─── PlanCard sub-component ───────────────────────────────────────────────────
+
+interface PlanCardProps {
+  product:  ProductInfo;
+  selected: boolean;
+  badge?:   string;
+  onSelect: () => void;
+  colors:   ReturnType<typeof import('@/hooks/useColorScheme').useColorScheme>['colors'];
+}
+
+function PlanCard({ product, selected, badge, onSelect, colors }: PlanCardProps) {
+  const borderColor = selected ? Palette.primary : colors.border;
+  const bg          = selected ? Palette.primaryLight : colors.surface;
+
+  return (
+    <PressableCard
+      style={[styles.planCard, { borderColor, backgroundColor: bg, borderWidth: selected ? 2 : 1 }]}
+      onPress={onSelect}
+    >
+      {badge && (
+        <View style={[styles.badge, { backgroundColor: Palette.primary }]}>
+          <Text variant="caption" weight="bold" style={{ color: '#fff' }}>{badge}</Text>
+        </View>
+      )}
+      <Text variant="h2" weight="bold" style={{ color: selected ? Palette.primary : colors.text }}>
+        {product.priceString}
+      </Text>
+      <Text variant="caption" color="secondary">
+        {product.period === 'monthly' ? 'per month' : 'per year'}
+      </Text>
+    </PressableCard>
+  );
+}
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
-  safe: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    padding: Spacing.base,
-    paddingTop: Spacing.xl,
-  },
-  content: {
-    paddingHorizontal: Spacing.base,
-    gap: Spacing.md,
-    paddingBottom: 20,
-  },
-  hero: {
-    alignItems: 'center',
-    paddingVertical: Spacing.md,
-    gap: Spacing.sm,
-  },
+  safe:    { flex: 1 },
+  header:  { flexDirection: 'row', justifyContent: 'flex-end', padding: Spacing.base, paddingTop: Spacing.xl },
+  content: { paddingHorizontal: Spacing.base, gap: Spacing.md, paddingBottom: 20 },
+  hero:    { alignItems: 'center', paddingVertical: Spacing.md, gap: Spacing.sm },
   featureCard: { gap: Spacing.md },
-  featureRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: Spacing.md,
-  },
-  freeCard: { gap: Spacing.sm },
-  freeRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-    alignItems: 'center',
-  },
-  pricingCard: {
-    borderWidth: 2,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  priceAlt: {
-    alignItems: 'flex-end',
-  },
+  featureRow:  { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },
+  freeCard:    { gap: Spacing.sm },
+  freeRow:     { flexDirection: 'row', gap: Spacing.sm, alignItems: 'center' },
+  pricingCard: { borderWidth: 2 },
+  planRow:     { flexDirection: 'row', gap: Spacing.md },
+  planCard:    { flex: 1, alignItems: 'center', paddingVertical: Spacing.lg, gap: Spacing.xs, position: 'relative', overflow: 'visible' },
+  badge:       { position: 'absolute', top: -10, right: -6, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
   footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: Spacing.base,
+    position:   'absolute',
+    bottom: 0, left: 0, right: 0,
+    padding:    Spacing.base,
     paddingBottom: Spacing.xl,
     borderTopWidth: 1,
   },

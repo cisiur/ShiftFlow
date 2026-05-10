@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   View, TouchableOpacity, StyleSheet, Modal, ScrollView,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import { SelectOption } from '@/components/ui/SelectOption';
@@ -38,6 +39,7 @@ const SHIFT_COLORS: Record<string, string> = {
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function ScheduleScreen() {
+  const router = useRouter();
   const { colors } = useColorScheme();
   const { t, language } = useTranslation();
   const profile = useUserStore(s => s.profile);
@@ -129,6 +131,12 @@ export default function ScheduleScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} edges={['top']}>
       <View style={styles.header}>
         <Text variant="h2" weight="bold">{t.tabs.schedule}</Text>
+        <TouchableOpacity
+          onPress={() => router.push('/roster-import')}
+          style={styles.importBtn}
+        >
+          <Text style={{ fontSize: 18 }}>📷</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Week navigation */}
@@ -459,10 +467,19 @@ const tabStyles = StyleSheet.create({
 
 const styles = StyleSheet.create({
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: Spacing.base,
     paddingTop: Spacing.base,
     paddingBottom: Spacing.sm,
-    gap: 2,
+  },
+  importBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: Radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   weekNav: {
     flexDirection: 'row',
