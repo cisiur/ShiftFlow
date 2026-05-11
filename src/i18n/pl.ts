@@ -145,6 +145,7 @@ export const pl: Translations = {
       upgrade: 'Przejdź na Premium',
       upgradeDesc: 'Wyjaśnienia AI, adaptacyjne plany i więcej',
       active: 'Premium aktywne',
+      manageSubscription: 'Zarządzaj subskrypcją',
     },
     modal: {
       cancel: 'Anuluj',

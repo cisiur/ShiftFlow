@@ -143,6 +143,7 @@ export const en = {
       upgrade: 'Upgrade to Premium',
       upgradeDesc: 'AI explanations, adaptive plans, and more',
       active: 'Premium active',
+      manageSubscription: 'Manage subscription',
     },
     modal: {
       cancel: 'Cancel',

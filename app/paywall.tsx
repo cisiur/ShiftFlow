@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import { Card, PressableCard } from '@/components/ui/Card';
-import { Spacing, Palette } from '@/constants/theme';
+import { Spacing, Palette, Radius } from '@/constants/theme';
 import { usePremiumStore } from '@/store/premiumStore';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Analytics } from '@/services/analytics';
@@ -14,13 +14,16 @@ import {
   purchaseProduct,
   restorePurchases,
   type ProductInfo,
+  type ProductPeriod,
 } from '@/services/purchases';
 import * as Haptics from 'expo-haptics';
+
+// ─── Feature lists ────────────────────────────────────────────────────────────
 
 const PREMIUM_FEATURES = [
   { icon: '🤖', label: 'AI-powered plan explanations', desc: 'Personalised reasons behind every recommendation' },
   { icon: '📊', label: 'Adaptive recovery plans',      desc: 'Plans that learn from your daily check-ins' },
-  { icon: '📥', label: 'Schedule import',              desc: 'Upload a photo or document of your roster' },
+  { icon: '📥', label: 'Schedule import',              desc: 'Upload a photo of your roster — AI reads it for you' },
   { icon: '📈', label: 'Trend insights',               desc: 'See your sleep, energy, and fatigue over time' },
   { icon: '🔔', label: 'Smart reminders',              desc: 'Context-aware alerts based on your shift type' },
 ];
@@ -33,34 +36,50 @@ const FREE_FEATURES = [
   'Daily check-ins',
 ];
 
+// ─── Period display helpers ───────────────────────────────────────────────────
+
+function periodLabel(period: ProductPeriod): string {
+  if (period === 'monthly')  return 'per month';
+  if (period === 'yearly')   return 'per year';
+  return 'one-time';
+}
+
+function periodBadge(period: ProductPeriod): string | null {
+  if (period === 'yearly')   return 'Best value';
+  if (period === 'lifetime') return 'Own forever';
+  return null;
+}
+
+// ─── Screen ───────────────────────────────────────────────────────────────────
+
 export default function PaywallScreen() {
-  const router   = useRouter();
+  const router = useRouter();
   const { colors } = useColorScheme();
   const { activatePremium, deactivatePremium, isPremium } = usePremiumStore();
 
-  const [products,    setProducts]    = useState<ProductInfo[]>([]);
-  const [selected,    setSelected]    = useState<string | null>(null);
-  const [purchasing,  setPurchasing]  = useState(false);
-  const [restoring,   setRestoring]   = useState(false);
+  const [products,     setProducts]     = useState<ProductInfo[]>([]);
+  const [selected,     setSelected]     = useState<string | null>(null);
+  const [purchasing,   setPurchasing]   = useState(false);
+  const [restoring,    setRestoring]    = useState(false);
   const [loadingOffer, setLoadingOffer] = useState(true);
 
   useEffect(() => {
     Analytics.screen('paywall');
     getOfferings().then(prods => {
       setProducts(prods);
-      // pre-select the monthly plan
+      // pre-select monthly
       const monthly = prods.find(p => p.period === 'monthly');
       if (monthly) setSelected(monthly.identifier);
       setLoadingOffer(false);
     });
   }, []);
 
-  const monthly = products.find(p => p.period === 'monthly');
-  const annual  = products.find(p => p.period === 'annual');
+  const monthly  = products.find(p => p.period === 'monthly');
+  const yearly   = products.find(p => p.period === 'yearly');
+  const lifetime = products.find(p => p.period === 'lifetime');
 
-  // Compute savings % dynamically from real prices
-  const savingsPct = monthly && annual
-    ? Math.round((1 - annual.price / (monthly.price * 12)) * 100)
+  const savingsPct = monthly && yearly
+    ? Math.round((1 - yearly.price / (monthly.price * 12)) * 100)
     : 33;
 
   const selectedProduct = products.find(p => p.identifier === selected);
@@ -80,7 +99,6 @@ export default function PaywallScreen() {
       } else if (result.error) {
         Alert.alert('Purchase failed', result.error);
       }
-      // silent cancel — user cancelled the OS dialog
     } catch (err: any) {
       Alert.alert('Purchase error', err?.message ?? 'Please try again.');
     } finally {
@@ -97,10 +115,9 @@ export default function PaywallScreen() {
       if (result.isPremium) {
         activatePremium();
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        Alert.alert('Restored', 'Your premium subscription has been restored.');
+        Alert.alert('Restored', 'Your premium access has been restored.');
         router.back();
       } else {
-        // Ensure local state reflects reality
         deactivatePremium();
         Alert.alert('Nothing to restore', 'No active subscription found for this account.');
       }
@@ -132,7 +149,7 @@ export default function PaywallScreen() {
     );
   }
 
-  // ── Paywall UI ──
+  // ── Paywall ──
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
@@ -146,17 +163,17 @@ export default function PaywallScreen() {
         <View style={styles.hero}>
           <Text style={{ fontSize: 56, textAlign: 'center' }}>⭐</Text>
           <Text variant="h2" weight="bold" center style={{ marginTop: Spacing.md }}>
-            ShiftFlow Premium
+            ShiftFlow Pro
           </Text>
           <Text variant="body" color="secondary" center>
             Everything you need to recover better, sleep smarter, and thrive on any shift.
           </Text>
         </View>
 
-        {/* Premium features */}
+        {/* Premium feature list */}
         <Card style={styles.featureCard}>
           <Text variant="label" weight="semibold" style={{ color: Palette.primary, marginBottom: Spacing.sm }}>
-            PREMIUM INCLUDES
+            PRO INCLUDES
           </Text>
           {PREMIUM_FEATURES.map((f, i) => (
             <View key={i} style={styles.featureRow}>
@@ -169,7 +186,7 @@ export default function PaywallScreen() {
           ))}
         </Card>
 
-        {/* Free tier reminder */}
+        {/* Free tier */}
         <Card style={styles.freeCard}>
           <Text variant="label" color="secondary" style={{ marginBottom: Spacing.sm }}>FREE TIER INCLUDES</Text>
           {FREE_FEATURES.map((f, i) => (
@@ -180,40 +197,52 @@ export default function PaywallScreen() {
           ))}
         </Card>
 
-        {/* Plan selector — real prices from RevenueCat */}
+        {/* Plan selector */}
         {loadingOffer ? (
-          <Card style={styles.pricingCard}>
-            <Text variant="body" color="secondary" center>Loading prices…</Text>
-          </Card>
+          <Card><Text variant="body" color="secondary" center>Loading prices…</Text></Card>
         ) : (
-          <View style={styles.planRow}>
-            {monthly && (
+          <>
+            {/* Subscription row (monthly + yearly side by side) */}
+            <View style={styles.planRow}>
+              {monthly && (
+                <PlanCard
+                  product={monthly}
+                  selected={selected === monthly.identifier}
+                  onSelect={() => setSelected(monthly.identifier)}
+                  colors={colors}
+                />
+              )}
+              {yearly && (
+                <PlanCard
+                  product={yearly}
+                  selected={selected === yearly.identifier}
+                  badge={`Save ${savingsPct}%`}
+                  onSelect={() => setSelected(yearly.identifier)}
+                  colors={colors}
+                />
+              )}
+            </View>
+
+            {/* Lifetime — full width */}
+            {lifetime && (
               <PlanCard
-                product={monthly}
-                selected={selected === monthly.identifier}
-                onSelect={() => setSelected(monthly.identifier)}
+                product={lifetime}
+                selected={selected === lifetime.identifier}
+                badge="Own forever"
+                fullWidth
+                onSelect={() => setSelected(lifetime.identifier)}
                 colors={colors}
               />
             )}
-            {annual && (
-              <PlanCard
-                product={annual}
-                selected={selected === annual.identifier}
-                badge={`Save ${savingsPct}%`}
-                onSelect={() => setSelected(annual.identifier)}
-                colors={colors}
-              />
-            )}
-          </View>
+          </>
         )}
 
         <Text variant="caption" color="tertiary" center style={{ marginTop: Spacing.sm }}>
-          Cancel anytime. No hidden fees. Payments handled securely via the App Store / Google Play.
+          Cancel anytime. Payments handled securely via Google Play.
         </Text>
         {__DEV__ && (
           <Text variant="caption" color="tertiary" center>
-            ⚙️ DEV: RevenueCat{' '}
-            {products[0]?.priceString?.startsWith('$4') ? 'mock prices' : 'live prices'}
+            ⚙️ DEV: {products[0]?.priceString ? 'prices loaded' : 'mock prices'}
           </Text>
         )}
 
@@ -223,10 +252,9 @@ export default function PaywallScreen() {
       <View style={[styles.footer, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
         <Button
           label={
-            purchasing
-              ? 'Processing…'
+            purchasing ? 'Processing…'
               : selectedProduct
-                ? `Subscribe — ${selectedProduct.priceString}${selectedProduct.period === 'monthly' ? '/mo' : '/yr'}`
+                ? `Get Pro — ${selectedProduct.priceString}${selectedProduct.period !== 'lifetime' ? `/${selectedProduct.period === 'monthly' ? 'mo' : 'yr'}` : ''}`
                 : 'Select a plan'
           }
           fullWidth
@@ -249,36 +277,57 @@ export default function PaywallScreen() {
   );
 }
 
-// ─── PlanCard sub-component ───────────────────────────────────────────────────
+// ─── PlanCard ─────────────────────────────────────────────────────────────────
 
 interface PlanCardProps {
-  product:  ProductInfo;
-  selected: boolean;
-  badge?:   string;
-  onSelect: () => void;
-  colors:   ReturnType<typeof import('@/hooks/useColorScheme').useColorScheme>['colors'];
+  product:   ProductInfo;
+  selected:  boolean;
+  badge?:    string;
+  fullWidth?: boolean;
+  onSelect:  () => void;
+  colors:    ReturnType<typeof import('@/hooks/useColorScheme').useColorScheme>['colors'];
 }
 
-function PlanCard({ product, selected, badge, onSelect, colors }: PlanCardProps) {
+function PlanCard({ product, selected, badge, fullWidth = false, onSelect, colors }: PlanCardProps) {
   const borderColor = selected ? Palette.primary : colors.border;
   const bg          = selected ? Palette.primaryLight : colors.surface;
 
   return (
     <PressableCard
-      style={[styles.planCard, { borderColor, backgroundColor: bg, borderWidth: selected ? 2 : 1 }]}
       onPress={onSelect}
+      style={[
+        styles.planCard,
+        fullWidth && styles.planCardFull,
+        { borderColor, backgroundColor: bg, borderWidth: selected ? 2 : 1 },
+      ]}
     >
       {badge && (
         <View style={[styles.badge, { backgroundColor: Palette.primary }]}>
           <Text variant="caption" weight="bold" style={{ color: '#fff' }}>{badge}</Text>
         </View>
       )}
-      <Text variant="h2" weight="bold" style={{ color: selected ? Palette.primary : colors.text }}>
-        {product.priceString}
-      </Text>
-      <Text variant="caption" color="secondary">
-        {product.period === 'monthly' ? 'per month' : 'per year'}
-      </Text>
+      {fullWidth ? (
+        /* Lifetime — horizontal layout */
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+          <View>
+            <Text variant="body" weight="semibold" style={{ color: selected ? Palette.primary : colors.text }}>
+              Lifetime access
+            </Text>
+            <Text variant="caption" color="secondary">Pay once — no subscription</Text>
+          </View>
+          <Text variant="h2" weight="bold" style={{ color: selected ? Palette.primary : colors.text }}>
+            {product.priceString}
+          </Text>
+        </View>
+      ) : (
+        /* Monthly / Yearly — vertical layout */
+        <>
+          <Text variant="h2" weight="bold" style={{ color: selected ? Palette.primary : colors.text }}>
+            {product.priceString}
+          </Text>
+          <Text variant="caption" color="secondary">{periodLabel(product.period)}</Text>
+        </>
+      )}
     </PressableCard>
   );
 }
@@ -294,15 +343,33 @@ const styles = StyleSheet.create({
   featureRow:  { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },
   freeCard:    { gap: Spacing.sm },
   freeRow:     { flexDirection: 'row', gap: Spacing.sm, alignItems: 'center' },
-  pricingCard: { borderWidth: 2 },
   planRow:     { flexDirection: 'row', gap: Spacing.md },
-  planCard:    { flex: 1, alignItems: 'center', paddingVertical: Spacing.lg, gap: Spacing.xs, position: 'relative', overflow: 'visible' },
-  badge:       { position: 'absolute', top: -10, right: -6, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
+  planCard: {
+    flex: 1,
+    alignItems:     'center',
+    paddingVertical: Spacing.lg,
+    gap:             Spacing.xs,
+    position:        'relative',
+    overflow:        'visible',
+  },
+  planCardFull: {
+    flex:            undefined,
+    flexDirection:   'row',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.base,
+  },
+  badge: {
+    position:        'absolute',
+    top: -10, right: -6,
+    paddingHorizontal: 8,
+    paddingVertical:   2,
+    borderRadius:      8,
+  },
   footer: {
-    position:   'absolute',
+    position:       'absolute',
     bottom: 0, left: 0, right: 0,
-    padding:    Spacing.base,
-    paddingBottom: Spacing.xl,
+    padding:        Spacing.base,
+    paddingBottom:  Spacing.xl,
     borderTopWidth: 1,
   },
 });

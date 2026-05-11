@@ -23,6 +23,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useTranslation } from '@/i18n';
 import type { AppLanguage } from '@/store/languageStore';
 import { Analytics } from '@/services/analytics';
+import { presentCustomerCenter } from '@/services/purchases';
 import type { ShiftType, WorkRole, ShiftPattern, Goal, CaffeineSensitivity, SleepDifficulty } from '@/types';
 
 // ─── Small reusable pieces ────────────────────────────────────────────────────
@@ -216,10 +217,27 @@ export default function SettingsScreen() {
           </TouchableOpacity>
         )}
         {isPremium() && (
-          <Card style={{ flexDirection: 'row', alignItems: 'center', gap: S.md, marginBottom: S.base }}>
-            <Text style={{ fontSize: 22 }}>⭐</Text>
-            <Text variant="body" weight="semibold" style={{ color: Palette.primary }}>{t.settings.premium.active}</Text>
-            <Badge label="PRO" variant="premium" />
+          <Card style={{ gap: S.sm, marginBottom: S.base }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: S.md }}>
+              <Text style={{ fontSize: 22 }}>⭐</Text>
+              <Text variant="body" weight="semibold" style={{ color: Palette.primary, flex: 1 }}>{t.settings.premium.active}</Text>
+              <Badge label="PRO" variant="premium" />
+            </View>
+            <TouchableOpacity
+              onPress={async () => {
+                try {
+                  await presentCustomerCenter();
+                } catch (err: any) {
+                  Alert.alert('Subscription', err?.message ?? 'Could not open subscription management.');
+                }
+              }}
+              style={[styles.manageSubBtn, { borderColor: Palette.primary }]}
+              activeOpacity={0.7}
+            >
+              <Text variant="bodySmall" weight="semibold" style={{ color: Palette.primary }}>
+                {t.settings.premium.manageSubscription}
+              </Text>
+            </TouchableOpacity>
           </Card>
         )}
 
@@ -641,6 +659,13 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
     minHeight: 52,
+  },
+  manageSubBtn: {
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.md,
+    borderWidth: 1,
   },
   premiumBanner: {
     flexDirection: 'row',

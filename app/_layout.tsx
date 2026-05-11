@@ -7,6 +7,8 @@ import * as SystemUI from 'expo-system-ui';
 import { useAppReady } from '@/hooks/useAppReady';
 import { useUserStore } from '@/store/userStore';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { initialisePurchases } from '@/services/purchases';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 function NavigationGuard() {
   const segments = useSegments();
@@ -34,6 +36,11 @@ export default function RootLayout() {
   const { ready } = useAppReady();
   const { scheme, colors } = useColorScheme();
 
+  // Initialise RevenueCat once on mount (no-op if key not set)
+  useEffect(() => {
+    initialisePurchases();
+  }, []);
+
   // Keep the Android system navigation bar background in sync with app theme
   useEffect(() => {
     SystemUI.setBackgroundColorAsync(colors.background);
@@ -42,6 +49,7 @@ export default function RootLayout() {
   if (!ready) return null;
 
   return (
+    <ErrorBoundary>
     <GestureHandlerRootView style={styles.root}>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
       <NavigationGuard />
@@ -51,8 +59,10 @@ export default function RootLayout() {
         <Stack.Screen name="checkin" options={{ presentation: 'modal', headerShown: false }} />
         <Stack.Screen name="plan-explanation" options={{ presentation: 'modal', headerShown: false }} />
         <Stack.Screen name="paywall" options={{ presentation: 'modal', headerShown: false }} />
+        <Stack.Screen name="roster-import" options={{ presentation: 'modal', headerShown: false }} />
       </Stack>
     </GestureHandlerRootView>
+    </ErrorBoundary>
   );
 }
 

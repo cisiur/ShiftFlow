@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShiftFlow – Privacy Policy</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #0f1623;
+      color: #e2e8f0;
+      line-height: 1.7;
+      padding: 0 1rem 4rem;
+    }
+
+    header {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 3rem 0 2rem;
+      border-bottom: 1px solid #1e2d42;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    header p {
+      margin-top: 0.5rem;
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    h2 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #ffffff;
+      margin: 2.5rem 0 0.75rem;
+    }
+
+    p, li {
+      color: #cbd5e1;
+      font-size: 0.97rem;
+    }
+
+    ul {
+      padding-left: 1.4rem;
+      margin-top: 0.5rem;
+    }
+
+    li { margin-bottom: 0.3rem; }
+
+    a { color: #6ea8fe; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .chip {
+      display: inline-block;
+      background: #1e3a5f;
+      color: #6ea8fe;
+      font-size: 0.8rem;
+      padding: 0.1rem 0.6rem;
+      border-radius: 999px;
+      margin-left: 0.4rem;
+      vertical-align: middle;
+    }
+
+    footer {
+      max-width: 720px;
+      margin: 3rem auto 0;
+      padding-top: 1.5rem;
+      border-top: 1px solid #1e2d42;
+      color: #475569;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>ShiftFlow <span class="chip">Privacy Policy</span></h1>
+  <p>Effective date: 11 May 2026 &nbsp;·&nbsp; Last updated: 11 May 2026</p>
+</header>
+
+<main>
+
+  <h2>1. Who we are</h2>
+  <p>
+    ShiftFlow ("we", "our", "the app") is a mobile application for shift workers developed by
+    Krzysztof Radziwon. This policy explains what data we collect, how we use it, and your rights.
+    Questions? Contact us at <a href="mailto:support@shiftflow.app">support@shiftflow.app</a>.
+  </p>
+
+  <h2>2. Data stored on your device</h2>
+  <p>The following data is stored <strong>locally on your phone only</strong> using
+     AsyncStorage. It never leaves your device unless explicitly stated otherwise.</p>
+  <ul>
+    <li>Your work profile (role, shift pattern, sleep goal, caffeine sensitivity)</li>
+    <li>Your shift schedule and calendar entries</li>
+    <li>Daily check-in responses (energy, mood, sleep quality)</li>
+    <li>App preferences (language, notification settings, time format)</li>
+    <li>Premium subscription status (cached locally)</li>
+  </ul>
+
+  <h2>3. Data sent to third-party services</h2>
+
+  <h2 style="font-size:1rem; margin-top:1.2rem;">3a. Anthropic (AI explanations)</h2>
+  <p>
+    When you request an AI-generated plan explanation, the app sends a short, anonymised
+    prompt to <strong>Anthropic's API</strong> (api.anthropic.com). This prompt contains
+    only your shift type, energy level, and fatigue context — <em>no names, no account
+    identifiers, no device identifiers</em>. Anthropic's data usage is governed by their
+    <a href="https://www.anthropic.com/privacy" target="_blank" rel="noopener">Privacy Policy</a>.
+    This feature is opt-in and only triggers when you tap "Explain my plan".
+  </p>
+
+  <h2 style="font-size:1rem; margin-top:1.2rem;">3b. RevenueCat (in-app purchases)</h2>
+  <p>
+    Subscription purchases are processed via <strong>RevenueCat</strong> and
+    <strong>Google Play</strong>. RevenueCat receives a random anonymous user ID generated
+    on first launch — no name or email is transmitted. Purchase receipts are verified
+    server-side by RevenueCat to confirm entitlements. See
+    <a href="https://www.revenuecat.com/privacy" target="_blank" rel="noopener">RevenueCat's Privacy Policy</a>.
+    Actual payment data is handled exclusively by Google Play and never touches our or
+    RevenueCat's servers.
+  </p>
+
+  <h2 style="font-size:1rem; margin-top:1.2rem;">3c. Expo / EAS (app updates)</h2>
+  <p>
+    The app is built with Expo. Expo may collect anonymous crash reports and usage
+    metrics as part of their platform services. See
+    <a href="https://expo.dev/privacy" target="_blank" rel="noopener">Expo's Privacy Policy</a>.
+  </p>
+
+  <h2>4. Roster photo import (AI OCR)</h2>
+  <p>
+    If you use the "Import from photo" feature, the image you select is sent to
+    Anthropic's API for text recognition. The image is transmitted over HTTPS and is
+    <strong>not stored</strong> by us or by Anthropic beyond the duration of the API
+    request (per Anthropic's zero-data-retention API policy). We recommend cropping or
+    blurring any personal information visible in the photo before using this feature.
+  </p>
+
+  <h2>5. Data we do NOT collect</h2>
+  <ul>
+    <li>Your name, email address, or any account credentials</li>
+    <li>Precise or approximate GPS location</li>
+    <li>Health or medical records</li>
+    <li>Contacts, calendar, or files on your device (beyond photos you explicitly choose)</li>
+    <li>Advertising identifiers (GAID / IDFA)</li>
+    <li>Crash analytics or telemetry beyond what Expo collects anonymously</li>
+  </ul>
+
+  <h2>6. Notifications</h2>
+  <p>
+    ShiftFlow may send local push notifications (sleep reminders, caffeine cutoff,
+    shift transitions). These notifications are scheduled entirely on-device and do not
+    involve any external server. You can disable them at any time in
+    <strong>Settings → Notifications</strong> or your device's system settings.
+  </p>
+
+  <h2>7. Children's privacy</h2>
+  <p>
+    ShiftFlow is not directed at children under 13 (or 16 in the EU/EEA). We do not
+    knowingly collect data from children.
+  </p>
+
+  <h2>8. Data retention &amp; deletion</h2>
+  <p>
+    All data stored on-device can be permanently deleted by going to
+    <strong>Settings → Reset all data</strong>, or by uninstalling the app.
+    Since we hold no server-side account data, there is nothing further to request
+    deletion of from us directly.
+  </p>
+
+  <h2>9. Your rights (GDPR / CCPA)</h2>
+  <p>
+    Because we do not operate user accounts or store personal data on our servers, the
+    practical exercise of most GDPR/CCPA rights (access, rectification, portability,
+    erasure) is fulfilled entirely on-device via the reset function described above.
+    For any other concern, contact us at
+    <a href="mailto:support@shiftflow.app">support@shiftflow.app</a>.
+  </p>
+
+  <h2>10. Security</h2>
+  <p>
+    All API calls (Anthropic, RevenueCat) use HTTPS/TLS. API keys are stored as
+    environment variables and are never exposed in the app bundle or transmitted to
+    end-user devices.
+  </p>
+
+  <h2>11. Changes to this policy</h2>
+  <p>
+    We may update this policy to reflect changes in the app or applicable law. The
+    "Last updated" date at the top of this page will change accordingly. Continued use
+    of the app after a material change constitutes acceptance of the updated policy.
+  </p>
+
+</main>
+
+<footer>
+  <p>ShiftFlow · <a href="mailto:support@shiftflow.app">support@shiftflow.app</a></p>
+</footer>
+
+</body>
+</html>

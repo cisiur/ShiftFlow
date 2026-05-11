@@ -1,73 +1,88 @@
 /**
- * RevenueCat purchases service.
+ * RevenueCat purchases service — React Native implementation.
  *
- * Install the SDK first:
- *   npx expo install react-native-purchases
+ * SDK: react-native-purchases (already installed)
+ * Plugin: "react-native-purchases" in app.json (already added)
  *
- * Configure in app.json plugins:
- *   "react-native-purchases"
+ * RevenueCat dashboard setup required:
+ *  - Entitlement ID : "ShiftFlow Pro"
+ *  - Products       : "monthly", "yearly", "lifetime"
+ *  - Offering       : "default" containing those three packages
  *
- * Set EXPO_PUBLIC_REVENUECAT_API_KEY in .env.local
+ * Env var: EXPO_PUBLIC_REVENUECAT_API_KEY
  *
- * Entitlement expected in RevenueCat dashboard: "premium"
- * Products:    shiftflow_monthly   (e.g. $4.99/mo)
- *              shiftflow_annual    (e.g. $39.99/yr)
+ * NOTE: react-native-purchases is a native module — works only in EAS/standalone builds.
+ * In Expo Go / dev without the key, falls back to mock prices gracefully.
  */
 
 import { Config } from '@/constants/config';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+export type ProductPeriod = 'monthly' | 'yearly' | 'lifetime';
+
 export interface ProductInfo {
-  identifier: string;
-  title: string;
-  description: string;
-  priceString: string;
-  price: number;
+  identifier:   string;
+  title:        string;
+  description:  string;
+  priceString:  string;
+  price:        number;
   currencyCode: string;
-  period: 'monthly' | 'annual';
+  period:       ProductPeriod;
 }
 
 export interface PurchaseResult {
-  success: boolean;
+  success:   boolean;
   isPremium: boolean;
-  error?: string;
+  error?:    string;
 }
 
-// ─── RC SDK lazy-import helper ────────────────────────────────────────────────
+// ─── Entitlement identifier ───────────────────────────────────────────────────
+// Must match exactly what you created in the RevenueCat dashboard.
 
-// We lazy-import so the app still runs without the native module during web/Expo Go
+const ENTITLEMENT_ID = 'ShiftFlow Pro';
+
+// ─── RC SDK lazy-import ───────────────────────────────────────────────────────
+
 async function getRC() {
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const Purchases = require('react-native-purchases').default;
-    return Purchases as import('react-native-purchases').default;
+    const mod = require('react-native-purchases');
+    return (mod.default ?? mod) as typeof import('react-native-purchases').default;
   } catch {
     return null;
   }
 }
 
-// ─── SDK initialisation ───────────────────────────────────────────────────────
+// ─── Initialisation ───────────────────────────────────────────────────────────
 
 let _initialised = false;
 
 export async function initialisePurchases(): Promise<void> {
   if (_initialised) return;
+
   const apiKey = Config.revenueCatApiKey;
   if (!apiKey) {
-    console.warn('[Purchases] EXPO_PUBLIC_REVENUECAT_API_KEY not set — using mock mode');
+    console.warn('[Purchases] EXPO_PUBLIC_REVENUECAT_API_KEY not set — mock mode');
     return;
   }
+
   const RC = await getRC();
   if (!RC) {
-    console.warn('[Purchases] react-native-purchases not available');
+    console.warn('[Purchases] react-native-purchases not available (Expo Go / web)');
     return;
   }
-  RC.configure({ apiKey });
-  _initialised = true;
+
+  try {
+    RC.configure({ apiKey });
+    _initialised = true;
+    console.log('[Purchases] RevenueCat initialised');
+  } catch (err) {
+    console.error('[Purchases] initialisation error:', err);
+  }
 }
 
-// ─── Fetch available products ─────────────────────────────────────────────────
+// ─── Offerings ────────────────────────────────────────────────────────────────
 
 export async function getOfferings(): Promise<ProductInfo[]> {
   const RC = await getRC();
@@ -80,10 +95,22 @@ export async function getOfferings(): Promise<ProductInfo[]> {
 
     return current.availablePackages.map(pkg => {
       const p = pkg.product;
-      const isAnnual =
+
+      let period: ProductPeriod;
+      if (
+        pkg.packageType === 'LIFETIME' ||
+        p.identifier.toLowerCase().includes('lifetime')
+      ) {
+        period = 'lifetime';
+      } else if (
         pkg.packageType === 'ANNUAL' ||
-        p.identifier.includes('annual') ||
-        p.identifier.includes('yearly');
+        p.identifier.toLowerCase().includes('year') ||
+        p.identifier.toLowerCase().includes('annual')
+      ) {
+        period = 'yearly';
+      } else {
+        period = 'monthly';
+      }
 
       return {
         identifier:   p.identifier,
@@ -92,8 +119,8 @@ export async function getOfferings(): Promise<ProductInfo[]> {
         priceString:  p.priceString,
         price:        p.price,
         currencyCode: p.currencyCode,
-        period:       isAnnual ? 'annual' : 'monthly',
-      };
+        period,
+      } satisfies ProductInfo;
     });
   } catch (err) {
     console.error('[Purchases] getOfferings error:', err);
@@ -101,54 +128,52 @@ export async function getOfferings(): Promise<ProductInfo[]> {
   }
 }
 
-// ─── Purchase a package ───────────────────────────────────────────────────────
+// ─── Purchase ─────────────────────────────────────────────────────────────────
 
 export async function purchaseProduct(identifier: string): Promise<PurchaseResult> {
   const RC = await getRC();
   if (!RC || !_initialised) {
-    // mock path — simulate success after short delay
+    // mock — simulate purchase success
     await new Promise(r => setTimeout(r, 1200));
     return { success: true, isPremium: true };
   }
 
   try {
     const offerings = await RC.getOfferings();
-    const current = offerings.current;
-    if (!current) return { success: false, isPremium: false, error: 'No offerings available' };
-
-    const pkg = current.availablePackages.find(p => p.product.identifier === identifier);
+    const pkg = offerings.current?.availablePackages.find(
+      p => p.product.identifier === identifier,
+    );
     if (!pkg) return { success: false, isPremium: false, error: 'Product not found' };
 
     const { customerInfo } = await RC.purchasePackage(pkg);
-    const isPremium = customerInfo.entitlements.active['premium'] !== undefined;
+    const isPremium = customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
     return { success: true, isPremium };
   } catch (err: any) {
-    // RC throws a specific error when user cancels
     if (err?.userCancelled) return { success: false, isPremium: false };
-    console.error('[Purchases] purchaseProduct error:', err);
+    console.error('[Purchases] purchase error:', err);
     return { success: false, isPremium: false, error: err?.message ?? 'Purchase failed' };
   }
 }
 
-// ─── Restore purchases ────────────────────────────────────────────────────────
+// ─── Restore ──────────────────────────────────────────────────────────────────
 
 export async function restorePurchases(): Promise<PurchaseResult> {
   const RC = await getRC();
   if (!RC || !_initialised) {
-    return { success: false, isPremium: false, error: 'Store not available' };
+    return { success: false, isPremium: false, error: 'Store not available in this build' };
   }
 
   try {
     const customerInfo = await RC.restorePurchases();
-    const isPremium = customerInfo.entitlements.active['premium'] !== undefined;
+    const isPremium = customerInfo.entitlements.active[ENTITLEMENT_ID] !== undefined;
     return { success: true, isPremium };
   } catch (err: any) {
-    console.error('[Purchases] restorePurchases error:', err);
+    console.error('[Purchases] restore error:', err);
     return { success: false, isPremium: false, error: err?.message ?? 'Restore failed' };
   }
 }
 
-// ─── Check current entitlement ────────────────────────────────────────────────
+// ─── Entitlement check ────────────────────────────────────────────────────────
 
 export async function checkPremiumEntitlement(): Promise<boolean> {
   const RC = await getRC();
@@ -156,33 +181,63 @@ export async function checkPremiumEntitlement(): Promise<boolean> {
 
   try {
     const info = await RC.getCustomerInfo();
-    return info.entitlements.active['premium'] !== undefined;
+    return info.entitlements.active[ENTITLEMENT_ID] !== undefined;
   } catch {
     return false;
   }
 }
 
-// ─── Mock products (shown when RC unavailable) ────────────────────────────────
+// ─── Customer Center ─────────────────────────────────────────────────────────
+// Shows RevenueCat's built-in subscription management UI (cancel, refund, etc.)
+
+export async function presentCustomerCenter(): Promise<void> {
+  const RC = await getRC();
+  if (!RC || !_initialised) {
+    throw new Error('Customer Center is not available in this build.');
+  }
+
+  try {
+    // presentCustomerCenter is available in react-native-purchases v7+
+    if (typeof (RC as any).presentCustomerCenter === 'function') {
+      await (RC as any).presentCustomerCenter();
+    } else {
+      throw new Error('Customer Center requires a newer version of react-native-purchases.');
+    }
+  } catch (err: any) {
+    throw new Error(err?.message ?? 'Could not open Customer Center');
+  }
+}
+
+// ─── Mock products ────────────────────────────────────────────────────────────
 
 function getMockProducts(): ProductInfo[] {
   return [
     {
-      identifier:  'shiftflow_monthly',
-      title:       'ShiftFlow Premium Monthly',
-      description: 'Full access to all premium features',
-      priceString: '$4.99',
-      price:       4.99,
+      identifier:   'monthly',
+      title:        'ShiftFlow Pro Monthly',
+      description:  'Full access, billed monthly',
+      priceString:  '$4.99',
+      price:        4.99,
       currencyCode: 'USD',
-      period:      'monthly',
+      period:       'monthly',
     },
     {
-      identifier:  'shiftflow_annual',
-      title:       'ShiftFlow Premium Annual',
-      description: 'Full access — save 33%',
-      priceString: '$39.99',
-      price:       39.99,
+      identifier:   'yearly',
+      title:        'ShiftFlow Pro Yearly',
+      description:  'Full access — save 33%',
+      priceString:  '$39.99',
+      price:        39.99,
       currencyCode: 'USD',
-      period:      'annual',
+      period:       'yearly',
+    },
+    {
+      identifier:   'lifetime',
+      title:        'ShiftFlow Pro Lifetime',
+      description:  'Pay once, own forever',
+      priceString:  '$89.99',
+      price:        89.99,
+      currencyCode: 'USD',
+      period:       'lifetime',
     },
   ];
 }
