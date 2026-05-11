@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
 import { Card, PressableCard } from '@/components/ui/Card';
@@ -56,6 +56,7 @@ export default function PaywallScreen() {
   const router = useRouter();
   const { colors } = useColorScheme();
   const { activatePremium, deactivatePremium, isPremium } = usePremiumStore();
+  const insets = useSafeAreaInsets();
 
   const [products,     setProducts]     = useState<ProductInfo[]>([]);
   const [selected,     setSelected]     = useState<string | null>(null);
@@ -158,7 +159,7 @@ export default function PaywallScreen() {
         <Button label="Close" variant="ghost" size="sm" onPress={() => router.back()} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 140 + insets.bottom }]} showsVerticalScrollIndicator={false}>
         {/* Hero */}
         <View style={styles.hero}>
           <Text style={{ fontSize: 56, textAlign: 'center' }}>⭐</Text>
@@ -246,10 +247,9 @@ export default function PaywallScreen() {
           </Text>
         )}
 
-        <View style={{ height: 120 }} />
       </ScrollView>
 
-      <View style={[styles.footer, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
+      <View style={[styles.footer, { borderTopColor: colors.border, backgroundColor: colors.background, paddingBottom: insets.bottom + Spacing.md }]}>
         <Button
           label={
             purchasing ? 'Processing…'
@@ -337,7 +337,7 @@ function PlanCard({ product, selected, badge, fullWidth = false, onSelect, color
 const styles = StyleSheet.create({
   safe:    { flex: 1 },
   header:  { flexDirection: 'row', justifyContent: 'flex-end', padding: Spacing.base, paddingTop: Spacing.xl },
-  content: { paddingHorizontal: Spacing.base, gap: Spacing.md, paddingBottom: 20 },
+  content: { paddingHorizontal: Spacing.base, gap: Spacing.md, paddingTop: Spacing.md, paddingBottom: 20 },
   hero:    { alignItems: 'center', paddingVertical: Spacing.md, gap: Spacing.sm },
   featureCard: { gap: Spacing.md },
   featureRow:  { flexDirection: 'row', alignItems: 'flex-start', gap: Spacing.md },
@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
     position:       'absolute',
     bottom: 0, left: 0, right: 0,
     padding:        Spacing.base,
-    paddingBottom:  Spacing.xl,
+    paddingTop:     Spacing.md,
     borderTopWidth: 1,
   },
 });

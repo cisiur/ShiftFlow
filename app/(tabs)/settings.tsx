@@ -22,6 +22,7 @@ import { usePremiumStore } from '@/store/premiumStore';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useTranslation } from '@/i18n';
 import type { AppLanguage } from '@/store/languageStore';
+import { Linking } from 'react-native';
 import { Analytics } from '@/services/analytics';
 import { presentCustomerCenter } from '@/services/purchases';
 import type { ShiftType, WorkRole, ShiftPattern, Goal, CaffeineSensitivity, SleepDifficulty } from '@/types';
@@ -227,8 +228,11 @@ export default function SettingsScreen() {
               onPress={async () => {
                 try {
                   await presentCustomerCenter();
-                } catch (err: any) {
-                  Alert.alert('Subscription', err?.message ?? 'Could not open subscription management.');
+                } catch {
+                  // Customer Center not available in this build — fall back to Google Play
+                  Linking.openURL(
+                    'https://play.google.com/store/account/subscriptions?package=com.shiftflow.app',
+                  );
                 }
               }}
               style={[styles.manageSubBtn, { borderColor: Palette.primary }]}

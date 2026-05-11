@@ -14,7 +14,7 @@ import {
   Alert, TouchableOpacity, Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
@@ -59,6 +59,7 @@ type Step = 'pick' | 'processing' | 'review' | 'done';
 export default function RosterImportScreen() {
   const router      = useRouter();
   const { colors }  = useColorScheme();
+  const insets      = useSafeAreaInsets();
   const { t, language } = useTranslation();
   const ri          = t.rosterImport;
   const { isPremium } = usePremiumStore();
@@ -335,10 +336,10 @@ export default function RosterImportScreen() {
               ))}
             </View>
 
-            <View style={{ height: 120 }} />
+            <View style={{ height: 160 }} />
           </ScrollView>
 
-          <View style={[styles.footer, { borderTopColor: colors.border, backgroundColor: colors.background }]}>
+          <View style={[styles.footer, { borderTopColor: colors.border, backgroundColor: colors.background, paddingBottom: insets.bottom + Spacing.md }]}>
             <Text variant="caption" color="secondary" center style={{ marginBottom: Spacing.sm }}>
               {ri.selected(selected.size, extracted.length)}
             </Text>
@@ -479,7 +480,7 @@ const styles = StyleSheet.create({
     position:       'absolute',
     bottom: 0, left: 0, right: 0,
     padding:        Spacing.base,
-    paddingBottom:  Spacing.xl,
+    paddingTop:     Spacing.md,
     borderTopWidth: 1,
   },
 });

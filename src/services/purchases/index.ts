@@ -56,7 +56,8 @@ async function getRC() {
 
 // ─── Initialisation ───────────────────────────────────────────────────────────
 
-let _initialised = false;
+let _initialised    = false;
+let _usingMockProducts = false; // true when RC returned no offerings → mock prices shown
 
 export async function initialisePurchases(): Promise<void> {
   if (_initialised) return;
@@ -86,12 +87,19 @@ export async function initialisePurchases(): Promise<void> {
 
 export async function getOfferings(): Promise<ProductInfo[]> {
   const RC = await getRC();
-  if (!RC || !_initialised) return getMockProducts();
+  if (!RC || !_initialised) {
+    _usingMockProducts = true;
+    return getMockProducts();
+  }
 
   try {
     const offerings = await RC.getOfferings();
     const current = offerings.current;
-    if (!current) return getMockProducts();
+    if (!current || current.availablePackages.length === 0) {
+      _usingMockProducts = true;
+      return getMockProducts();
+    }
+    _usingMockProducts = false;
 
     return current.availablePackages.map(pkg => {
       const p = pkg.product;
@@ -124,6 +132,7 @@ export async function getOfferings(): Promise<ProductInfo[]> {
     });
   } catch (err) {
     console.error('[Purchases] getOfferings error:', err);
+    _usingMockProducts = true;
     return getMockProducts();
   }
 }
@@ -132,8 +141,8 @@ export async function getOfferings(): Promise<ProductInfo[]> {
 
 export async function purchaseProduct(identifier: string): Promise<PurchaseResult> {
   const RC = await getRC();
-  if (!RC || !_initialised) {
-    // mock — simulate purchase success
+  if (!RC || !_initialised || _usingMockProducts) {
+    // mock — RC not available or no products configured in Play Store yet
     await new Promise(r => setTimeout(r, 1200));
     return { success: true, isPremium: true };
   }
