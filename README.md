@@ -236,7 +236,7 @@ npm test
 - [x] Bundle ID set (`com.shiftflow.app`)
 - [x] `versionCode` starting point set in `app.json`
 - [x] EAS build profiles configured (`eas.json`)
-- [x] Privacy policy written and hosted (`docs/privacy-policy.html`)
+- [x] Privacy policy live at https://shiftflow-legal.netlify.app/privacy-policy.html
 - [x] Error boundary (crash recovery)
 - [x] RevenueCat IAP wired
 - [x] AI features live
