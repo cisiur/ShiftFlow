@@ -4,249 +4,250 @@
 
 ShiftFlow generates a personalised daily plan — sleep windows, caffeine cutoffs, nap suggestions, meal timing, and recovery tips — based on your shift schedule and how you're feeling. Built for nurses, factory workers, drivers, security staff, and everyone else who works irregular hours.
 
+> 🇵🇱 Full Polish localisation included.
+
 ---
 
-## What it does
+## Feature status
 
 | Feature | Status |
 |---|---|
-| Onboarding flow (6 steps) | ✅ Real |
-| Shift schedule input (weekly, per day) | ✅ Real |
-| Daily plan generation (deterministic engine) | ✅ Real |
-| Sleep window calculation | ✅ Real |
-| Caffeine cutoff & guidance | ✅ Real |
-| Nap suggestions | ✅ Real |
-| Meal timing | ✅ Real |
-| Recovery tips (context-aware) | ✅ Real |
-| Energy score from check-ins | ✅ Real |
-| Weekly plan overview | ✅ Real |
-| Daily check-in | ✅ Real |
-| Local persistence (AsyncStorage) | ✅ Real |
-| Dark mode | ✅ Real |
-| Notification scaffolding | ✅ Scaffolded (permissions + scheduling) |
-| AI plan explanations | 🟡 Mocked (interface ready for Claude API) |
-| Premium gating | 🟡 Mocked (IAP not wired) |
-| Schedule image/OCR import | ❌ Not built (interface defined) |
-| Analytics | 🟡 Console-only mock |
+| Onboarding (6 steps — role, pattern, sleep, caffeine, difficulty, goals) | ✅ |
+| Shift schedule input (weekly calendar, per-day assignment) | ✅ |
+| Daily plan generation (deterministic rules engine) | ✅ |
+| Sleep window, caffeine cutoff, nap suggestions, meal timing | ✅ |
+| Context-aware recovery tips (40+ tips pool) | ✅ |
+| Energy score from weighted check-in history | ✅ |
+| Weekly plan overview | ✅ |
+| Daily check-in (mood, energy, sleep quality) | ✅ |
+| Shift time defaults editor (per shift type) | ✅ |
+| Dark mode (system-aware) | ✅ |
+| English + Polish localisation | ✅ |
+| Local persistence (AsyncStorage, no backend) | ✅ |
+| **AI plan explanations** (Claude Haiku via Anthropic API) | ✅ Live |
+| **Roster photo import** (OCR via Claude Sonnet Vision) | ✅ Live |
+| **In-app purchases** (RevenueCat — monthly / yearly / lifetime) | ✅ Wired (mock in Expo Go, live in EAS build) |
+| Premium paywall (3-tier plan selector) | ✅ |
+| Manage subscription (RevenueCat Customer Center) | ✅ Wired |
+| Error boundary (crash → friendly restart screen) | ✅ |
+| Notification permissions scaffolding | ✅ |
+| Notification scheduling (sleep / caffeine reminders) | 🔲 Pending |
+| In-app review prompt | 🔲 Pending |
+| Analytics (PostHog / Amplitude) | 🔲 Console mock only |
 
 ---
 
 ## Stack
 
-- **Expo SDK 52** with **Expo Router v4** (file-based navigation)
-- **React Native 0.76** + **TypeScript**
-- **Zustand v4** with `persist` middleware for state + local storage
-- **React Hook Form** + **Zod** (forms, validation — in onboarding)
-- **AsyncStorage** for local persistence
-- **Expo Notifications** for reminder scaffolding
-- **@expo-google-fonts/inter** for typography
-- **date-fns** for date utilities
-- **jest-expo** for testing
-
-No backend. No Firebase. No Supabase. Everything runs locally on the device — by design for MVP.
-
----
-
-## Prerequisites
-
-1. **Node.js ≥ 18** — download from [nodejs.org](https://nodejs.org)
-2. **Expo CLI** — installed automatically via `npx`
-3. **Expo Go** app on your phone OR an Android/iOS simulator
-
----
-
-## Setup
-
-```bash
-# 1. Install dependencies
-cd D:\Apka\ShiftFlow
-npm install
-
-# 2. Copy environment file (optional — app works without real values)
-copy .env.example .env
-
-# 3. Start Expo dev server
-npx expo start
-```
-
-Then:
-- **iOS Simulator**: press `i`
-- **Android Emulator**: press `a`
-- **Physical device**: scan QR code with Expo Go
-
----
-
-## Run tests
-
-```bash
-npm test
-```
-
-Covers:
-- `src/__tests__/recommendations.test.ts` — sleep window, caffeine cutoff, nap suggestion, energy score
-- `src/__tests__/timeUtils.test.ts` — all time utility functions
-
----
-
-## Architecture
-
-```
-ShiftFlow/
-├── app/                        # Expo Router screens
-│   ├── _layout.tsx             # Root layout + navigation guard (onboarding redirect)
-│   ├── (tabs)/                 # Tab navigation (Home, Schedule, Weekly, Settings)
-│   └── onboarding/             # Onboarding stack (6 screens)
-│
-├── src/
-│   ├── types/index.ts          # All TypeScript types
-│   ├── constants/
-│   │   ├── theme.ts            # Design tokens (colors, spacing, typography)
-│   │   ├── config.ts           # Feature flags, storage keys
-│   │   └── shifts.ts           # Shift/role/goal select options
-│   │
-│   ├── domain/
-│   │   ├── recommendations/
-│   │   │   ├── rules.ts        # Pure deterministic recommendation logic
-│   │   │   └── engine.ts       # Orchestrates rules → DailyPlan
-│   │   └── schedule/
-│   │       └── helpers.ts      # Shift entry utilities
-│   │
-│   ├── services/
-│   │   ├── ai/index.ts         # AI provider abstraction (mock + Anthropic stub)
-│   │   ├── storage/index.ts    # AsyncStorage typed wrapper
-│   │   ├── notifications/index.ts # Expo Notifications wrapper
-│   │   └── analytics/index.ts  # Analytics abstraction (mock)
-│   │
-│   ├── store/
-│   │   ├── userStore.ts        # User profile (Zustand + persist)
-│   │   ├── scheduleStore.ts    # Shift entries (Zustand + persist)
-│   │   ├── checkInStore.ts     # Daily check-ins (Zustand + persist)
-│   │   ├── planStore.ts        # Generated plans (in-memory, re-derived)
-│   │   └── premiumStore.ts     # Premium state (Zustand + persist)
-│   │
-│   ├── components/
-│   │   ├── ui/                 # Design system primitives
-│   │   │   ├── Text.tsx        # Typography
-│   │   │   ├── Button.tsx      # Button variants
-│   │   │   ├── Card.tsx        # Surface cards
-│   │   │   ├── Input.tsx       # Text inputs
-│   │   │   ├── Badge.tsx       # Status badges
-│   │   │   ├── SelectOption.tsx# Radio-style option rows
-│   │   │   └── ...
-│   │   └── features/           # Domain-specific components
-│   │       ├── ShiftCard.tsx
-│   │       ├── SleepWindowCard.tsx
-│   │       ├── CaffeineCard.tsx
-│   │       ├── NapCard.tsx
-│   │       ├── EnergyScore.tsx
-│   │       ├── WeekDayCard.tsx
-│   │       └── ...
-│   │
-│   ├── hooks/
-│   │   ├── useColorScheme.ts   # Dark/light mode
-│   │   ├── useAppReady.ts      # Font loading + store hydration
-│   │   └── usePlan.ts          # Today/weekly plan hooks
-│   │
-│   └── utils/
-│       ├── time.ts             # Pure time utilities (tested)
-│       ├── format.ts           # Label formatters
-│       └── seed.ts             # Demo data generator
-│
-└── assets/                     # Icons, splash (add your own)
-```
-
-### Key architectural decisions
-
-| Decision | Rationale |
+| Layer | Library |
 |---|---|
-| Expo Router (vs React Navigation) | File-based routing = simpler deep linking, fewer boilerplate files |
-| Zustand (vs Redux/Context) | Minimal API, no providers, excellent TypeScript support |
-| Deterministic rules engine | Works offline, no latency, fully testable, AI is additive not foundational |
-| Local-only storage for MVP | Removes backend complexity; swap in Supabase later via `services/storage` |
-| AI behind abstraction | `AIService` has mock + real providers; swap `EXPO_PUBLIC_AI_PROVIDER=anthropic` |
-| `domain/` separated from `store/` | Business logic is pure functions — easy to test and reuse |
+| Framework | Expo SDK 54 · React Native 0.81 |
+| Navigation | Expo Router v6 (file-based) |
+| Language | TypeScript |
+| State | Zustand v5 + `persist` (AsyncStorage) |
+| Purchases | `react-native-purchases` v10 (RevenueCat) |
+| AI / Vision | Anthropic API (`claude-haiku-4-5-20251001` / `claude-sonnet-4-6`) |
+| Fonts | `@expo-google-fonts/inter` |
+| Dates | `date-fns` |
+| Haptics | `expo-haptics` |
+| Notifications | `expo-notifications` |
+| Image picker | `expo-image-picker` |
+| Tests | `jest-expo` |
 
----
-
-## Recommendation engine
-
-The core logic lives in `src/domain/recommendations/rules.ts`.
-
-Given today's shift, tomorrow's shift, user profile, and recent check-ins, it calculates:
-
-1. **Sleep window** — shift end + commute buffer + wind-down → target hours based on profile
-2. **Caffeine cutoff** — `sleepStart - cutoffHours[sensitivity]`
-3. **Nap suggestion** — triggered by night shift recovery, pre-night-shift prep, or low energy score
-4. **Meal timing** — per shift type (5 unique meal templates)
-5. **Recovery tips** — contextual pool of 40+ tips, daily-seeded random selection
-6. **Energy score** — weighted average of last 7 check-ins (recent = higher weight)
-
-All functions are pure, side-effect-free, and fully covered by tests.
+No backend. No Firebase. No Supabase. Everything runs locally on the device.
 
 ---
 
 ## Environment variables
 
-See `.env.example`. Most are optional for MVP:
+Copy `.env.example` to `.env.local` and fill in:
 
 ```bash
-EXPO_PUBLIC_AI_PROVIDER=mock          # or "anthropic"
-EXPO_PUBLIC_ANALYTICS_PROVIDER=mock   # or your analytics SDK
-EXPO_PUBLIC_ENABLE_AI_EXPLANATIONS=false
-EXPO_PUBLIC_APP_ENV=development
+# Required for AI plan explanations and roster OCR
+EXPO_PUBLIC_ANTHROPIC_API_KEY=sk-ant-...
+
+# Required for live in-app purchases (omit to use mock prices in dev)
+EXPO_PUBLIC_REVENUECAT_API_KEY=...
 ```
 
-To wire real AI explanations:
-1. Set `EXPO_PUBLIC_AI_PROVIDER=anthropic`
-2. Set `EXPO_PUBLIC_ANTHROPIC_API_KEY=sk-ant-...`
-3. Implement the stub in `src/services/ai/index.ts` → `anthropicProvider`
+Both keys fall back gracefully — the app runs fully without them (AI shows mock explanation, purchases use mock prices).
+
+For production builds, set these as EAS secrets instead of committing to `.env.local`:
+
+```bash
+eas secret:create --scope project --name EXPO_PUBLIC_ANTHROPIC_API_KEY --value sk-ant-...
+eas secret:create --scope project --name EXPO_PUBLIC_REVENUECAT_API_KEY --value ...
+```
 
 ---
 
-## App Store / Play Store readiness
+## Running locally
 
-Before submitting:
+```bash
+npm install
+npx expo start --clear
+```
 
-- [ ] Replace placeholder `assets/icon.png`, `assets/splash.png`, `assets/adaptive-icon.png`
-- [ ] Replace `assets/notification-icon.png`
-- [ ] Set real `bundleIdentifier` (iOS) and `package` (Android) in `app.json`
-- [ ] Create EAS project: `eas build:configure`
-- [ ] Implement real IAP (RevenueCat recommended) to replace mocked `activatePremium()`
-- [ ] Implement real analytics (PostHog, Amplitude, or Mixpanel)
-- [ ] Add privacy policy URL and terms of service
-- [ ] Write App Store description and screenshots
-- [ ] Test with real Expo Go on both platforms
-- [ ] Add `expo-updates` for OTA updates
-- [ ] Set up EAS Build for production builds
+- **Physical device (Expo Go):** scan the QR code — purchases and native RC will use mock mode
+- **Android emulator:** press `a`
+- **Production-like build:** `eas build --profile preview --platform android`
 
 ---
 
-## What to build next
+## Project structure
 
-### MVP polish (1–2 weeks)
-- [ ] Custom shift time editor (when type = 'custom')
-- [ ] Edit/update profile after onboarding
-- [ ] Streak counter for consecutive check-ins
-- [ ] Weekly summary notification
-
-### Growth features (2–4 weeks)
-- [ ] Real Anthropic AI plan explanations
-- [ ] RevenueCat IAP integration
-- [ ] Roster photo import (OCR via Claude vision)
-- [ ] Trend charts (sleep quality over time, energy score history)
-- [ ] Shift reminder notifications (1h before shift)
-
-### Scale features (1–3 months)
-- [ ] Supabase backend sync (optional, keep local-first)
-- [ ] Shift pattern auto-detection from history
-- [ ] Apple Watch / Wear OS companion
-- [ ] Export data as PDF for occupational health appointments
+```
+ShiftFlow/
+├── app/                            # Expo Router screens
+│   ├── _layout.tsx                 # Root layout · ErrorBoundary · NavigationGuard · initialisePurchases
+│   ├── (tabs)/
+│   │   ├── index.tsx               # Today tab — daily plan
+│   │   ├── calendar.tsx            # Calendar tab
+│   │   ├── schedule.tsx            # Schedule tab (shift entry + roster import)
+│   │   ├── weekly.tsx              # Weekly overview
+│   │   └── settings.tsx            # Settings (profile, notifications, language, premium)
+│   ├── onboarding/                 # 6-screen onboarding stack
+│   ├── checkin.tsx                 # Daily check-in modal
+│   ├── plan-explanation.tsx        # AI plan explanation modal
+│   ├── paywall.tsx                 # Premium paywall (3 plans)
+│   └── roster-import.tsx           # Roster photo OCR import modal
+│
+├── src/
+│   ├── constants/
+│   │   ├── theme.ts                # Design tokens (Palette, Spacing, Radius, Typography)
+│   │   ├── config.ts               # Env var access (Metro-safe literal access)
+│   │   └── shifts.ts               # Shift/role/goal definitions
+│   │
+│   ├── domain/
+│   │   └── recommendations/
+│   │       ├── rules.ts            # Pure deterministic logic (tested)
+│   │       └── engine.ts           # Orchestrates rules → DailyPlan
+│   │
+│   ├── services/
+│   │   ├── ai/index.ts             # Anthropic API (real + mock fallback)
+│   │   ├── ocr/index.ts            # Claude Vision roster OCR (real + mock fallback)
+│   │   ├── purchases/index.ts      # RevenueCat IAP (real + mock fallback)
+│   │   ├── notifications/index.ts  # Expo Notifications wrapper
+│   │   ├── analytics/index.ts      # Analytics abstraction (console mock)
+│   │   └── storage/index.ts        # AsyncStorage typed wrapper
+│   │
+│   ├── store/
+│   │   ├── userStore.ts            # User profile
+│   │   ├── scheduleStore.ts        # Shift entries
+│   │   ├── checkInStore.ts         # Daily check-ins
+│   │   ├── planStore.ts            # Generated plans (in-memory)
+│   │   ├── premiumStore.ts         # Premium entitlement (persisted)
+│   │   └── languageStore.ts        # Language preference
+│   │
+│   ├── components/
+│   │   ├── ErrorBoundary.tsx       # Root error boundary (crash → restart screen)
+│   │   ├── ui/                     # Design system primitives
+│   │   └── features/               # Domain-specific components
+│   │
+│   ├── hooks/
+│   │   ├── useColorScheme.ts
+│   │   ├── useAppReady.ts
+│   │   └── usePlan.ts
+│   │
+│   ├── i18n/
+│   │   ├── index.ts                # useTranslation hook
+│   │   ├── en.ts                   # English strings
+│   │   └── pl.ts                   # Polish strings
+│   │
+│   └── utils/
+│       ├── time.ts                 # Pure time utilities (tested)
+│       ├── format.ts               # Label formatters
+│       └── seed.ts                 # Dev demo data generator
+│
+├── docs/
+│   ├── privacy-policy.html         # Hosted privacy policy (GitHub Pages / Netlify)
+│   └── index.html                  # Redirect to privacy policy
+│
+├── app.json                        # Expo config (bundle ID, permissions, plugins)
+├── eas.json                        # EAS Build profiles (development / preview / production)
+└── .env.local                      # Local env vars (never commit — use EAS secrets for production)
+```
 
 ---
 
-## Demo data
+## AI services
 
-Call `createDemoProfile()` and `createDemoSchedule()` from `src/utils/seed.ts` to populate realistic data in development. These are used to test the plan engine without going through onboarding.
+### Plan explanations (`src/services/ai/index.ts`)
+- Model: `claude-haiku-4-5-20251001`
+- Triggered by user tapping "Explain my plan" on the Today screen
+- Sends: shift type, energy level, sleep window, fatigue context — no PII
+- Falls back to a hardcoded mock explanation if `EXPO_PUBLIC_ANTHROPIC_API_KEY` is absent
+
+### Roster OCR (`src/services/ocr/index.ts`)
+- Model: `claude-sonnet-4-6` (better accuracy on dense tables)
+- User picks a photo of their printed/digital work schedule
+- Claude extracts dates + shift times → imports directly into the schedule store
+- Handles European date format (DD/MM), Excel-style time ranges (e.g. `7-19`), multiple shifts per day
+- Image transmitted over HTTPS; not stored beyond the API call
+
+---
+
+## Purchases (`src/services/purchases/index.ts`)
+
+RevenueCat entitlement: **`ShiftFlow Pro`**
+
+| Product ID | Type | Period |
+|---|---|---|
+| `monthly` | Subscription | Monthly |
+| `yearly` | Subscription | Yearly |
+| `lifetime` | One-time | Lifetime |
+
+- In Expo Go / no RC key: mock prices shown, purchase simulates success after 1.2s
+- In EAS build with key: real RevenueCat + Google Play flow
+- `presentCustomerCenter()` opens RC's built-in subscription management UI (cancel, refund)
+
+---
+
+## Building for production
+
+```bash
+# Configure EAS (first time only)
+eas build:configure
+
+# Preview APK (internal testing)
+eas build --profile preview --platform android
+
+# Production AAB (Google Play)
+eas build --profile production --platform android
+```
+
+`versionCode` auto-increments on every production build via `autoIncrement: true` in `eas.json`.
+
+---
+
+## Tests
+
+```bash
+npm test
+```
+
+- `src/__tests__/recommendations.test.ts` — sleep window, caffeine cutoff, nap suggestion, energy score
+- `src/__tests__/timeUtils.test.ts` — all time utility functions
+
+---
+
+## Play Store checklist
+
+- [x] Bundle ID set (`com.shiftflow.app`)
+- [x] `versionCode` starting point set in `app.json`
+- [x] EAS build profiles configured (`eas.json`)
+- [x] Privacy policy written and hosted (`docs/privacy-policy.html`)
+- [x] Error boundary (crash recovery)
+- [x] RevenueCat IAP wired
+- [x] AI features live
+- [ ] EAS secrets set (`eas secret:create …`)
+- [ ] Google Play Console account active
+- [ ] Products created in Play Console (`monthly`, `yearly`, `lifetime`)
+- [ ] Products linked in RevenueCat dashboard
+- [ ] Store listing assets (icon, feature graphic 1024×500, ≥2 screenshots)
+- [ ] Short description (≤80 chars) + full description
+- [ ] Privacy policy URL added to Play Console listing
+- [ ] `react-native-purchases` native build tested on real device via EAS
 
 ---
 
