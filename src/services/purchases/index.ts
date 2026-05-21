@@ -191,6 +191,14 @@ export async function checkPremiumEntitlement(): Promise<boolean> {
   }
 }
 
+// ─── RC status ───────────────────────────────────────────────────────────────
+// Returns true only when RC was successfully initialised with a real API key.
+// Use this to decide whether entitlement results are authoritative.
+
+export function isRCInitialised(): boolean {
+  return _initialised;
+}
+
 // ─── Customer Center ─────────────────────────────────────────────────────────
 // Shows RevenueCat's built-in subscription management UI (cancel, refund, etc.)
 

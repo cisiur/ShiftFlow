@@ -30,7 +30,7 @@
         "backgroundColor": "#0F1623"
       },
       "package": "com.JustSimpleSoft.shiftflow",
-      "versionCode": 1,
+      "versionCode": 4,
       "permissions": [
         "RECEIVE_BOOT_COMPLETED",
         "VIBRATE",

@@ -7,7 +7,8 @@ import * as SystemUI from 'expo-system-ui';
 import { useAppReady } from '@/hooks/useAppReady';
 import { useUserStore } from '@/store/userStore';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { initialisePurchases } from '@/services/purchases';
+import { initialisePurchases, checkPremiumEntitlement, isRCInitialised } from '@/services/purchases';
+import { usePremiumStore } from '@/store/premiumStore';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 function NavigationGuard() {
@@ -35,10 +36,23 @@ function NavigationGuard() {
 export default function RootLayout() {
   const { ready } = useAppReady();
   const { scheme, colors } = useColorScheme();
+  const activatePremium   = usePremiumStore(s => s.activatePremium);
+  const deactivatePremium = usePremiumStore(s => s.deactivatePremium);
 
-  // Initialise RevenueCat once on mount (no-op if key not set)
+  // Initialise RevenueCat then sync entitlement with local store.
+  // Only syncs when RC is actually running (real key) so mock/dev mode is unaffected.
   useEffect(() => {
-    initialisePurchases();
+    (async () => {
+      await initialisePurchases();
+      if (isRCInitialised()) {
+        const hasPremium = await checkPremiumEntitlement();
+        if (hasPremium) {
+          activatePremium();
+        } else {
+          deactivatePremium();
+        }
+      }
+    })();
   }, []);
 
   // Keep the Android system navigation bar background in sync with app theme
