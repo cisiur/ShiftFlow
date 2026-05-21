@@ -19,7 +19,7 @@ import { Config } from '@/constants/config';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type ProductPeriod = 'monthly' | 'yearly' | 'lifetime';
+export type ProductPeriod = 'monthly' | 'yearly';
 
 export interface ProductInfo {
   identifier:   string;
@@ -106,11 +106,6 @@ export async function getOfferings(): Promise<ProductInfo[]> {
 
       let period: ProductPeriod;
       if (
-        pkg.packageType === 'LIFETIME' ||
-        p.identifier.toLowerCase().includes('lifetime')
-      ) {
-        period = 'lifetime';
-      } else if (
         pkg.packageType === 'ANNUAL' ||
         p.identifier.toLowerCase().includes('year') ||
         p.identifier.toLowerCase().includes('annual')
@@ -238,15 +233,6 @@ function getMockProducts(): ProductInfo[] {
       price:        39.99,
       currencyCode: 'USD',
       period:       'yearly',
-    },
-    {
-      identifier:   'lifetime',
-      title:        'ShiftFlow Pro Lifetime',
-      description:  'Pay once, own forever',
-      priceString:  '$89.99',
-      price:        89.99,
-      currencyCode: 'USD',
-      period:       'lifetime',
     },
   ];
 }

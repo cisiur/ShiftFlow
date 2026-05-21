@@ -44,12 +44,6 @@ function periodLabel(period: ProductPeriod): string {
   return 'one-time';
 }
 
-function periodBadge(period: ProductPeriod): string | null {
-  if (period === 'yearly')   return 'Best value';
-  if (period === 'lifetime') return 'Own forever';
-  return null;
-}
-
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function PaywallScreen() {
@@ -77,7 +71,6 @@ export default function PaywallScreen() {
 
   const monthly  = products.find(p => p.period === 'monthly');
   const yearly   = products.find(p => p.period === 'yearly');
-  const lifetime = products.find(p => p.period === 'lifetime');
 
   const savingsPct = monthly && yearly
     ? Math.round((1 - yearly.price / (monthly.price * 12)) * 100)
@@ -224,17 +217,6 @@ export default function PaywallScreen() {
               )}
             </View>
 
-            {/* Lifetime — full width */}
-            {lifetime && (
-              <PlanCard
-                product={lifetime}
-                selected={selected === lifetime.identifier}
-                badge="Own forever"
-                fullWidth
-                onSelect={() => setSelected(lifetime.identifier)}
-                colors={colors}
-              />
-            )}
           </>
         )}
 
@@ -280,15 +262,14 @@ export default function PaywallScreen() {
 // ─── PlanCard ─────────────────────────────────────────────────────────────────
 
 interface PlanCardProps {
-  product:   ProductInfo;
-  selected:  boolean;
-  badge?:    string;
-  fullWidth?: boolean;
-  onSelect:  () => void;
-  colors:    ReturnType<typeof import('@/hooks/useColorScheme').useColorScheme>['colors'];
+  product:  ProductInfo;
+  selected: boolean;
+  badge?:   string;
+  onSelect: () => void;
+  colors:   ReturnType<typeof import('@/hooks/useColorScheme').useColorScheme>['colors'];
 }
 
-function PlanCard({ product, selected, badge, fullWidth = false, onSelect, colors }: PlanCardProps) {
+function PlanCard({ product, selected, badge, onSelect, colors }: PlanCardProps) {
   const borderColor = selected ? Palette.primary : colors.border;
   const bg          = selected ? Palette.primaryLight : colors.surface;
 
@@ -297,7 +278,6 @@ function PlanCard({ product, selected, badge, fullWidth = false, onSelect, color
       onPress={onSelect}
       style={[
         styles.planCard,
-        fullWidth && styles.planCardFull,
         { borderColor, backgroundColor: bg, borderWidth: selected ? 2 : 1 },
       ]}
     >
@@ -306,28 +286,10 @@ function PlanCard({ product, selected, badge, fullWidth = false, onSelect, color
           <Text variant="caption" weight="bold" style={{ color: '#fff' }}>{badge}</Text>
         </View>
       )}
-      {fullWidth ? (
-        /* Lifetime — horizontal layout */
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-          <View>
-            <Text variant="body" weight="semibold" style={{ color: selected ? Palette.primary : colors.text }}>
-              Lifetime access
-            </Text>
-            <Text variant="caption" color="secondary">Pay once — no subscription</Text>
-          </View>
-          <Text variant="h2" weight="bold" style={{ color: selected ? Palette.primary : colors.text }}>
-            {product.priceString}
-          </Text>
-        </View>
-      ) : (
-        /* Monthly / Yearly — vertical layout */
-        <>
-          <Text variant="h2" weight="bold" style={{ color: selected ? Palette.primary : colors.text }}>
-            {product.priceString}
-          </Text>
-          <Text variant="caption" color="secondary">{periodLabel(product.period)}</Text>
-        </>
-      )}
+      <Text variant="h2" weight="bold" style={{ color: selected ? Palette.primary : colors.text }}>
+        {product.priceString}
+      </Text>
+      <Text variant="caption" color="secondary">{periodLabel(product.period)}</Text>
     </PressableCard>
   );
 }
@@ -351,12 +313,6 @@ const styles = StyleSheet.create({
     gap:             Spacing.xs,
     position:        'relative',
     overflow:        'visible',
-  },
-  planCardFull: {
-    flex:            undefined,
-    flexDirection:   'row',
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.base,
   },
   badge: {
     position:        'absolute',

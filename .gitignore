@@ -13,6 +13,7 @@ web-build/
 .env.local
 .env.staging
 .DS_Store
+google-play-service-account.json
 *.pem
 npm-debug.*
 yarn-debug.*

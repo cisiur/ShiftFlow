@@ -1,0 +1,77 @@
+===========================
+SHORT DESCRIPTION (80 chars)
+===========================
+Smart recovery planner for shift workers — sleep, energy & AI insights
+
+
+===========================
+FULL DESCRIPTION
+===========================
+Working shifts wrecks your sleep, drains your energy, and throws your body clock off balance. ShiftFlow is the recovery companion built specifically for nurses, paramedics, factory workers, drivers, security staff, and everyone else who works irregular hours.
+
+Tell ShiftFlow your shift schedule — and it tells you exactly what to do to recover faster.
+
+─── WHAT SHIFTFLOW DOES ───
+
+Every day, ShiftFlow generates a personalised recovery plan based on your actual shift:
+
+• 😴 Sleep window — the exact time to go to bed and wake up, calculated around your shift end and commute
+• ☕ Caffeine cutoff — when to stop coffee to protect your sleep quality
+• 💤 Nap suggestions — pre-shift power nap timing when you're running low on energy
+• 🍽 Meal timing — tailored to your shift type so you're not eating at 3am by accident
+• ⚡ Energy score — a daily score built from your check-ins so you can track how you're recovering over time
+
+─── AI-POWERED INSIGHTS (PRO) ───
+
+Not sure why ShiftFlow is recommending a nap today? Tap "Explain my plan" and get a personalised AI explanation — written for your specific shift, your energy level, and your fatigue patterns. No generic advice. Your situation, explained.
+
+─── IMPORT YOUR ROSTER IN SECONDS (PRO) ───
+
+Got a printed schedule or a photo of your work roster? Just take a photo — ShiftFlow's AI reads it and imports all your shifts automatically. Works with printed tables, Excel screenshots, and handwritten rosters.
+
+─── DAILY CHECK-INS ───
+
+Log your energy, mood, and sleep quality each day in under 30 seconds. ShiftFlow learns from your check-ins to make your recovery plans sharper over time.
+
+─── BUILT FOR REAL SHIFT PATTERNS ───
+
+Whether you work 12-hour days, rotating nights, 4-on-4-off, continental shifts, or a mix — ShiftFlow adapts to your pattern, not the other way around.
+
+─── PRIVACY FIRST ───
+
+Your schedule and health data stay on your phone. No account required. No data sold. AI features send only anonymised, minimal context to generate your plan — never your name, never your location.
+
+─── FREE & PRO ───
+
+ShiftFlow is free to use with full core features. Upgrade to Pro to unlock:
+★ AI-powered plan explanations
+★ Roster photo import (OCR)
+★ Adaptive plans that learn from your check-ins
+★ Trend insights — sleep and energy over time
+★ Smart context-aware reminders
+
+Pro is available as a monthly subscription, yearly subscription (best value), or a one-time lifetime purchase.
+
+─── WHO IT'S FOR ───
+
+✔ Nurses and doctors
+✔ Paramedics and emergency services
+✔ Factory and warehouse workers
+✔ Drivers and logistics staff
+✔ Security and hospitality workers
+✔ Anyone on rotating or irregular shifts
+
+─── DISCLAIMER ───
+
+ShiftFlow provides general wellness guidance based on circadian rhythm research and sleep hygiene best practices. It is not a medical device and does not provide medical advice.
+
+
+===========================
+RELEASE NOTES (What's new)
+===========================
+Initial release of ShiftFlow — smart recovery planning for shift workers.
+• Personalised daily plans: sleep windows, caffeine cutoff, nap timing
+• AI plan explanations powered by Claude
+• Roster photo import — photograph your schedule, AI reads it for you
+• Daily check-ins with energy score tracking
+• English and Polish language support

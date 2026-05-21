@@ -17,7 +17,7 @@
 
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.shiftflow.app",
+      "bundleIdentifier": "com.JustSimpleSoft.shiftflow",
       "icon": "./assets/icon.png",
       "infoPlist": {
         "NSUserNotificationsUsageDescription": "ShiftFlow uses notifications to send you timely reminders about sleep, caffeine cutoff, and shift transitions."
@@ -29,7 +29,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0F1623"
       },
-      "package": "com.shiftflow.app",
+      "package": "com.JustSimpleSoft.shiftflow",
       "versionCode": 1,
       "permissions": [
         "RECEIVE_BOOT_COMPLETED",
