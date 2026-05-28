@@ -1,6 +1,6 @@
 {
   "name": "shiftflow",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Shift worker recovery and energy planning app",
   "main": "expo-router/entry",
   "scripts": {

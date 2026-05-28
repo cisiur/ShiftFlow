@@ -2,7 +2,7 @@
   "expo": {
     "name": "ShiftFlow",
     "slug": "shiftflow",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "scheme": "shiftflow",
     "userInterfaceStyle": "automatic",
@@ -30,7 +30,7 @@
         "backgroundColor": "#0F1623"
       },
       "package": "com.JustSimpleSoft.shiftflow",
-      "versionCode": 5,
+      "versionCode": 6,
       "permissions": [
         "RECEIVE_BOOT_COMPLETED",
         "VIBRATE",

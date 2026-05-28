@@ -547,8 +547,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: Radius.full,
     paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
-    width: 36,                    // same width as navBtn so layout is stable
+    paddingVertical: 5,
+    minWidth: 36,
     alignItems: 'center',
   },
 
@@ -678,6 +678,7 @@ const styles = StyleSheet.create({
   },
   emptyEmoji: {
     fontSize: 52,
+    lineHeight: 65,
   },
 
   timeLabel: {

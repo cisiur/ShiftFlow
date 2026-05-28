@@ -198,7 +198,7 @@ export default function RosterImportScreen() {
       {step === 'pick' && (
         <ScrollView contentContainerStyle={styles.content}>
           <Card style={styles.card}>
-            <Text style={{ fontSize: 40, textAlign: 'center' }}>📷</Text>
+            <Text style={{ fontSize: 40, lineHeight: 52, textAlign: 'center' }}>📷</Text>
             <Text variant="h3" weight="semibold" center style={{ marginTop: Spacing.sm }}>
               {ri.pickTitle}
             </Text>
@@ -366,7 +366,7 @@ export default function RosterImportScreen() {
       {/* ── Step: done ── */}
       {step === 'done' && (
         <View style={styles.centred}>
-          <Text style={{ fontSize: 64, textAlign: 'center' }}>✅</Text>
+          <Text style={{ fontSize: 64, lineHeight: 80, textAlign: 'center' }}>✅</Text>
           <Text variant="h2" weight="bold" center style={{ marginTop: Spacing.md }}>
             {ri.doneTitle}
           </Text>

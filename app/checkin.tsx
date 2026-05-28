@@ -48,7 +48,7 @@ export default function CheckInScreen() {
     return (
       <SafeAreaView style={[styles.safe, { backgroundColor: colors.background }]}>
         <View style={styles.success}>
-          <Text style={{ fontSize: 56, textAlign: 'center' }}>✅</Text>
+          <Text style={{ fontSize: 56, lineHeight: 70, textAlign: 'center' }}>✅</Text>
           <Text variant="h2" weight="bold" center style={{ marginTop: Spacing.md }}>
             {ci.saved}
           </Text>

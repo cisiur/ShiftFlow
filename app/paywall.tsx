@@ -131,7 +131,7 @@ export default function PaywallScreen() {
           <Button label="Close" variant="ghost" size="sm" onPress={() => router.back()} />
         </View>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: Spacing.xl }}>
-          <Text style={{ fontSize: 56, textAlign: 'center' }}>⭐</Text>
+          <Text style={{ fontSize: 56, lineHeight: 70, textAlign: 'center' }}>⭐</Text>
           <Text variant="h2" weight="bold" center style={{ marginTop: Spacing.md }}>
             You're on Premium
           </Text>
@@ -155,7 +155,7 @@ export default function PaywallScreen() {
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 140 + insets.bottom }]} showsVerticalScrollIndicator={false}>
         {/* Hero */}
         <View style={styles.hero}>
-          <Text style={{ fontSize: 56, textAlign: 'center' }}>⭐</Text>
+          <Text style={{ fontSize: 56, lineHeight: 70, textAlign: 'center' }}>⭐</Text>
           <Text variant="h2" weight="bold" center style={{ marginTop: Spacing.md }}>
             ShiftFlow Pro
           </Text>
