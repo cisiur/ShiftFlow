@@ -25,6 +25,7 @@ import type { AppLanguage } from '@/store/languageStore';
 import { Linking } from 'react-native';
 import { Analytics } from '@/services/analytics';
 import { presentCustomerCenter } from '@/services/purchases';
+import { exportCheckInsAsCSV } from '@/utils/exportCheckIns';
 import type { ShiftType, WorkRole, ShiftPattern, Goal, CaffeineSensitivity, SleepDifficulty } from '@/types';
 
 // ─── Small reusable pieces ────────────────────────────────────────────────────
@@ -116,6 +117,7 @@ export default function SettingsScreen() {
   const resetSchedule  = useScheduleStore(s => s.reset);
   const resetCheckIns  = useCheckInStore(s => s.reset);
   const { isPremium, activatePremium, deactivatePremium } = usePremiumStore();
+  const checkIns = useCheckInStore(s => s.checkIns);
 
   // ── Profile editing modal ──
   const [editingField, setEditingField] = useState<ProfileField | null>(null);
@@ -378,6 +380,22 @@ export default function SettingsScreen() {
         {/* ── Data ── */}
         <SectionHeader title={t.settings.sections.data} />
         <Card style={styles.section}>
+          <SettingRow
+            label={t.export.title}
+            value={isPremium() ? undefined : t.export.proOnly}
+            onPress={async () => {
+              if (!isPremium()) {
+                Analytics.premiumPaywallViewed('export');
+                router.push('/paywall');
+                return;
+              }
+              try {
+                await exportCheckInsAsCSV(checkIns);
+              } catch {
+                Alert.alert(t.export.error);
+              }
+            }}
+          />
           <View style={[styles.row, { borderBottomColor: 'transparent' }]}>
             <View>
               <Text variant="body">{t.settings.fields.dataStorage}</Text>

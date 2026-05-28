@@ -283,6 +283,55 @@ export const pl: Translations = {
     custom:     { label: 'Własna',       description: 'Ustaw własne godziny' },
   },
 
+  // ── Streak / gamification ────────────────────────────────────────────────────
+  streak: {
+    current: 'Obecna seria',
+    longest: 'Najdłuższa seria',
+    days:    (count: number) => {
+      if (count === 1) return '1 dzień';
+      if (count % 10 >= 2 && count % 10 <= 4 && !(count % 100 >= 12 && count % 100 <= 14)) return `${count} dni`;
+      return `${count} dni`;
+    },
+  },
+
+  // ── Weekly Insights ───────────────────────────────────────────────────────────
+  weeklyInsights: {
+    title:          'Tygodniowe spostrzeżenia',
+    lockedProgress: (current: number) => `${current}/7 dni`,
+    lockedHint:     (remaining: number) =>
+      remaining === 1 ? 'Uzupełnij 1 dzień, aby odblokować' : `Uzupełnij ${remaining} dni, aby odblokować`,
+    avgAlertness:   'Śr. czujność',
+    avgSleep:       'Śr. jakość snu',
+    checkInsCount:  'Check-iny w tym tygodniu',
+    outOf5:         (n: number) => `${n}/5`,
+    trend: {
+      improving: 'Poprawa ↑',
+      stable:    'Stabilnie →',
+      declining:  'Spadek ↓',
+    },
+    insights: {
+      consistent:    'Regularne check-iny budują wyraźniejszy obraz Twojego zdrowia.',
+      improveSleep:  'Jakość snu była niska w tym tygodniu. Stały wieczorny rytuał może pomóc.',
+      highAlertness: 'Czujność jest wysoka — Twój rytm działa. Tak trzymaj.',
+      trending_up:   'Czujność rośnie w porównaniu z początkiem tygodnia. Dobry progres.',
+      rest_needed:   'Czujność spadła w tym tygodniu. Dziś postaw na odpoczynek i regenerację.',
+    },
+  },
+
+  // ── History access ────────────────────────────────────────────────────────────
+  history: {
+    lockedCount: (count: number) =>
+      count === 1 ? '1 starszy wpis zablokowany' : `${count} starszych wpisów zablokowanych`,
+    upgradeCta: 'Przejdź na Pro, aby odblokować pełną historię i eksport',
+  },
+
+  // ── Export ────────────────────────────────────────────────────────────────────
+  export: {
+    title:   'Eksportuj historię check-inów',
+    error:   'Eksport nie powiódł się. Spróbuj ponownie.',
+    proOnly: 'Funkcja Pro',
+  },
+
   // ── Weekly screen ─────────────────────────────────────────────────────────────
   weekly: {
     title: 'Plan tygodniowy',

@@ -281,6 +281,51 @@ export const en = {
     custom:     { label: 'Custom',     description: 'Set your own hours' },
   },
 
+  // ── Streak / gamification ────────────────────────────────────────────────────
+  streak: {
+    current: 'Current streak',
+    longest: 'Longest streak',
+    days:    (count: number) => count === 1 ? '1 day' : `${count} days`,
+  },
+
+  // ── Weekly Insights ───────────────────────────────────────────────────────────
+  weeklyInsights: {
+    title:          'Weekly Insights',
+    lockedProgress: (current: number) => `${current}/7 days`,
+    lockedHint:     (remaining: number) =>
+      remaining === 1 ? 'Complete 1 more day to unlock' : `Complete ${remaining} more days to unlock`,
+    avgAlertness:   'Avg. alertness',
+    avgSleep:       'Avg. sleep quality',
+    checkInsCount:  'Check-ins this week',
+    outOf5:         (n: number) => `${n}/5`,
+    trend: {
+      improving: 'Improving ↑',
+      stable:    'Stable →',
+      declining:  'Declining ↓',
+    },
+    insights: {
+      consistent:    'Consistent check-ins are building a clearer picture of your health.',
+      improveSleep:  'Sleep quality has been low this week. A consistent wind-down routine can help.',
+      highAlertness: "Alertness is high — your routine is working. Keep it up.",
+      trending_up:   'Alertness is improving compared to earlier this week. Good progress.',
+      rest_needed:   'Alertness has dipped this week. Prioritise rest and recovery today.',
+    },
+  },
+
+  // ── History access ────────────────────────────────────────────────────────────
+  history: {
+    lockedCount: (count: number) =>
+      count === 1 ? '1 older entry locked' : `${count} older entries locked`,
+    upgradeCta: 'Upgrade to Pro for full history & export',
+  },
+
+  // ── Export ────────────────────────────────────────────────────────────────────
+  export: {
+    title:   'Export check-in history',
+    error:   'Export failed. Please try again.',
+    proOnly: 'Pro feature',
+  },
+
   // ── Weekly screen ─────────────────────────────────────────────────────────────
   weekly: {
     title: 'Weekly Plan',
