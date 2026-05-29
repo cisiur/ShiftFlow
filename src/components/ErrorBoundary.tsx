@@ -92,6 +92,7 @@ const styles = StyleSheet.create({
   },
   emoji: {
     fontSize: 56,
+    lineHeight: 70,
     textAlign: 'center',
   },
   title: {

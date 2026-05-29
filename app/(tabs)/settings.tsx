@@ -23,6 +23,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useTranslation } from '@/i18n';
 import type { AppLanguage } from '@/store/languageStore';
 import { Linking } from 'react-native';
+import Constants from 'expo-constants';
 import { Analytics } from '@/services/analytics';
 import { presentCustomerCenter } from '@/services/purchases';
 import { exportCheckInsAsCSV } from '@/utils/exportCheckIns';
@@ -407,7 +408,7 @@ export default function SettingsScreen() {
         {/* ── About ── */}
         <SectionHeader title={t.settings.sections.about} />
         <Card style={styles.section}>
-          <SettingRow label={t.settings.fields.version} value="1.0.0 (MVP)" last />
+          <SettingRow label={t.settings.fields.version} value={Constants.expoConfig?.version ?? '—'} last />
         </Card>
 
         {/* ── Danger ── */}

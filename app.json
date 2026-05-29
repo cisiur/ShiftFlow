@@ -2,7 +2,7 @@
   "expo": {
     "name": "ShiftFlow",
     "slug": "shiftflow",
-    "version": "1.0.1",
+    "version": "1.0.7",
     "orientation": "portrait",
     "scheme": "shiftflow",
     "userInterfaceStyle": "automatic",
@@ -42,6 +42,9 @@
       "favicon": "./assets/favicon.png",
       "bundler": "metro",
       "output": "static"
+    },
+    "react-native-google-mobile-ads": {
+      "android_app_id": "ca-app-pub-2378155255627809~7702145634"
     },
     "plugins": [
       "expo-router",

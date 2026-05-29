@@ -8,6 +8,7 @@ import { useAppReady } from '@/hooks/useAppReady';
 import { useUserStore } from '@/store/userStore';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { initialisePurchases, checkPremiumEntitlement, isRCInitialised } from '@/services/purchases';
+import mobileAds from 'react-native-google-mobile-ads';
 import { usePremiumStore } from '@/store/premiumStore';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
@@ -38,6 +39,11 @@ export default function RootLayout() {
   const { scheme, colors } = useColorScheme();
   const activatePremium   = usePremiumStore(s => s.activatePremium);
   const deactivatePremium = usePremiumStore(s => s.deactivatePremium);
+
+  // Initialise AdMob SDK once at startup
+  useEffect(() => {
+    mobileAds().initialize().catch(() => {/* non-fatal */});
+  }, []);
 
   // Initialise RevenueCat then sync entitlement with local store.
   // Only syncs when RC is actually running (real key) so mock/dev mode is unaffected.

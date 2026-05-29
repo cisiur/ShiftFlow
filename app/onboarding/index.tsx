@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
   },
   langFlag: { fontSize: 14 },
   top: { alignItems: 'center' },
-  logo: { fontSize: 56 },
+  logo: { fontSize: 56, lineHeight: 70 },
   tagline: {
     marginTop: Spacing.sm,
     lineHeight: 24,

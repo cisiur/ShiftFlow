@@ -11,6 +11,7 @@ import { SleepWindowCard } from '@/components/features/SleepWindowCard';
 import { CaffeineCard } from '@/components/features/CaffeineCard';
 import { NapCard } from '@/components/features/NapCard';
 import { RecoveryTips } from '@/components/features/RecoveryTips';
+import { NativeAdCard } from '@/components/features/NativeAdCard';
 import { MealList } from '@/components/features/MealList';
 import { EnergyScoreCard } from '@/components/features/EnergyScore';
 import { Spacing, Palette } from '@/constants/theme';
@@ -111,6 +112,9 @@ export default function HomeScreen() {
 
       {/* Sleep */}
       <SleepWindowCard sleepWindow={plan.sleepWindow} />
+
+      {/* Native ad — hidden for premium users */}
+      <NativeAdCard />
 
       {/* Caffeine */}
       <CaffeineCard guidance={plan.caffeineGuidance} />
